@@ -4,8 +4,8 @@
     "type": "isomorphic-lib",
     "version": "v2",
     "linkedProjects": [
-      "tnp-helpers",
-      "tnp-models"
+      "../tnp-helpers",
+      "../tnp-models"
     ],
     "overrided": {
       "ignoreDepsPattern": [],
