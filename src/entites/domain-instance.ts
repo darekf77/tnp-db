@@ -1,5 +1,4 @@
 //#region @backend
-import { Project } from '../../project';
 import { Models } from 'tnp-models';
 import { BuildInstance } from './build-instance';
 import { DBBaseEntity } from './base-entity';
@@ -30,7 +29,7 @@ export class DomainInstance extends DBBaseEntity implements IDomainInstance {
 
 
   declaredIn: {
-    project: Project;
+    project: Models.other.IProject;
     environment: Models.env.EnvironmentName
   }[] = [];
   get activeFor(): BuildInstance {

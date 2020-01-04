@@ -17,14 +17,17 @@ import {
   BaseController,
   ProcessController
 } from './controllers';
-import { Project } from '../project';
+
 import { BuildInstance } from './entites/build-instance';
 import { CommandInstance, ProjectInstance, ProcessMetaInfo, ProcessInstance } from './entites';
 import { PortsSet } from './controllers/ports-set';
 import { Models } from 'tnp-models';
 import chalk from 'chalk';
-import { BuildOptions } from '../project/features';
-import { config } from '../config';
+
+declare const global: any;
+declare const ENV: any;
+const config = ENV.config as any;
+
 
 export type ProcessBoundAction = (
   process: ProcessInstance
@@ -87,7 +90,7 @@ export class DBTransaction {
     })
   }
 
-  async updateCommandBuildOptions(location: string, buildOptions: BuildOptions) {
+  async updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
     await this.start('update command build options', async () => {
       this.__commandsCtrl.updateCommandBuildOptions(location, buildOptions);
     })
@@ -113,11 +116,11 @@ export class DBTransaction {
   }
 
 
-  public addProjectIfNotExist(project: Project) {
+  public addProjectIfNotExist(project: Models.other.IProject) {
     this.__projectsCtrl.addIfNotExists(ProjectInstance.from(project));
   }
 
-  public async killInstancesFrom(projects: Project[]) {
+  public async killInstancesFrom(projects: Models.other.IProject[]) {
     await this.start(`kill instances from projets`, async () => {
       await this.__buildsCtrl.update()
       await this.__buildsCtrl.killInstancesFrom(projects)
@@ -163,7 +166,7 @@ export class DBTransaction {
    *  and it will casuse error in typescript , that whould never appear
    * after normal "first" compilation
    */
-  public async someBuildIsActive(project: Project): Promise<boolean> {
+  public async someBuildIsActive(project: Models.other.IProject): Promise<boolean> {
 
     return new Promise<boolean>(async resolve => {
       await this.start(`opposite build is not active`, async () => {
@@ -191,8 +194,8 @@ export class DBTransaction {
     });
   }
 
-  public async updateBuildsWithCurrent(currentProject: Project,
-    buildOptions: BuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
+  public async updateBuildsWithCurrent(currentProject: Models.other.IProject,
+    buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
     // console.log('current build options', buildOptions)
     await this.start(`update builds with current`, async () => {
       this.__projectsCtrl.addIfNotExists(ProjectInstance.from(currentProject))

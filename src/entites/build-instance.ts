@@ -1,15 +1,14 @@
 //#region @backend
 import * as _ from 'lodash';
-import { Project } from '../../project'
 import { CommandInstance } from './command-instance';
 import { DBBaseEntity } from './base-entity';
 import { Helpers } from 'tnp-helpers';
 import chalk from 'chalk';
-import { BuildOptions } from '../../project/features';
 import { CLASS } from 'typescript-class-helpers';
+import { Models } from 'tnp-models';
 
 export type IBuildInstance = {
-  buildOptions?: BuildOptions;
+  buildOptions?: Models.dev.IBuildOptions;
   cmd?: string;
   pid: number;
   ppid: number;
@@ -25,6 +24,9 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     if (!data) {
       data = {} as any;
     }
+    const BuildOptions = CLASS.getBy('BuildOptions') as any;
+    const Project = CLASS.getBy('Project') as any;
+
     const { buildOptions, pid, location, cmd } = data;
     this.buildOptions = buildOptions;
     this.pid = pid;
@@ -35,11 +37,12 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
       // console.log('create empty IBuildInstance ')
     } else {
       if (!this.cmd) {
+
         this.cmd = BuildOptions.exportToCMD(this.buildOptions);
       }
 
       if (!this.buildOptions && !!Project.From(process.cwd())) {
-        const project: Project = Project.Current;
+        const project: Models.other.IProject = Project.Current;
         this.buildOptions = BuildOptions.from(this.cmd, project)
       }
     }
@@ -55,7 +58,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   }
 
 
-  buildOptions: BuildOptions;
+  buildOptions: Models.dev.IBuildOptions;
   cmd?: string;
 
   isEqual(anotherInstace: BuildInstance) {
@@ -90,6 +93,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   ppid: number;
   location?: string;
   get project() {
+    const Project = CLASS.getBy('Project') as any;
     return Project.From(this.location);
   }
 

@@ -11,16 +11,17 @@ import {
   BuildsController,
   PortsController,
   CommandsController,
-  BaseController,
   ProcessController
 } from './controllers';
-import { Project } from '../project';
 import { Helpers } from 'tnp-helpers';
 import { DBTransaction } from './db-transactions';
 import { DbCrud } from './db-crud';
 import { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance } from './entites';
-import { config } from '../config';
-import { BuildOptions } from '../project/features';
+import { CLASS } from 'typescript-class-helpers';
+import { Models } from 'tnp-models';
+declare const global: any;
+declare const ENV: any;
+const config = ENV.config as any;
 export { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance } from './entites';
 
 export class TnpDB {
@@ -40,6 +41,7 @@ export class TnpDB {
       if (global.testMode) {
         dbPath = `bin/${config.folder.tnp_db_for_tests_json}`;
       }
+      const Project = CLASS.getBy('Project') as any;
       const location = path.join(Project.Tnp.location, dbPath);
       this._instance = new TnpDB(location)
       await this._instance.init(!fse.existsSync(location))
@@ -134,10 +136,10 @@ export class TnpDB {
     return {
       get allowed() {
         return {
-          toRunBuild(project: Project, options: BuildOptions) {
+          toRunBuild(project: Models.other.IProject, options: Models.dev.IBuildOptions) {
 
           },
-          removeTnpBundleFolder(project: Project) {
+          removeTnpBundleFolder(project: Models.other.IProject) {
             let allowed = true;
             const p = project.isWorkspaceChildProject ? project.parent : project;
             if (p.isWorkspace) {
@@ -158,7 +160,7 @@ export class TnpDB {
             }
             return allowed;
           },
-          toWatchWorkspace(workspaceChild: Project) {
+          toWatchWorkspace(workspaceChild: Models.other.IProject) {
             let allowed = true;
             const p = workspaceChild.isWorkspaceChildProject ? workspaceChild.parent : workspaceChild;
             if (p.isWorkspace) {

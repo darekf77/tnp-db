@@ -1,13 +1,13 @@
 //#region @backend
 import * as _ from 'lodash';
-import { start } from '../../start.backend';
+declare const global: any;
+const start = global.start as any;
 import { Helpers } from 'tnp-helpers';
 
 import { BaseController } from './base-controlller';
 import { CommandInstance } from '../entites/command-instance';
-import { Project } from '../../project';
-import { BuildOptions } from '../../project/features';
 import { CLASS } from 'typescript-class-helpers';
+import { Models } from 'tnp-models';
 
 
 @CLASS.NAME('CommandsController')
@@ -46,16 +46,18 @@ export class CommandsController extends BaseController {
     }
   }
 
-  updateCommandBuildOptions(location: string, buildOptions: BuildOptions) {
+  updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
     const cmd = this.lastCommandFrom(location);
     if (cmd) {
-      const clients = _.isArray(buildOptions.forClient) ? (buildOptions.forClient as any[]).map((c: Project) => {
-        return `--forClient ${c.name}`
-      }).join(' ') : '';
+      const clients = _.isArray(buildOptions.forClient) ? (buildOptions.forClient as any[])
+        .map((c: Models.other.IProject) => {
+          return `--forClient ${c.name}`
+        }).join(' ') : '';
 
-      const copyto = _.isArray(buildOptions.copyto) ? (buildOptions.copyto as any[]).map((c: Project) => {
-        return `--copyto ${c.location}`
-      }).join(' ') : '';
+      const copyto = _.isArray(buildOptions.copyto) ? (buildOptions.copyto as any[])
+        .map((c: Models.other.IProject) => {
+          return `--copyto ${c.location}`
+        }).join(' ') : '';
 
       cmd.command = cmd.command + ' ' + clients + ' ' + copyto;
       this.crud.set(cmd)

@@ -1,6 +1,5 @@
 //#region @backend
 import * as _ from 'lodash';
-import { Project } from '../../project';
 import { Models } from 'tnp-models';
 import { Helpers } from 'tnp-helpers';
 import { DBBaseEntity } from './base-entity';
@@ -13,7 +12,7 @@ export class PortInstance extends DBBaseEntity {
 
   constructor(
     public id?: PortIdType,
-    public reservedFor?: Project | Models.system.SystemService) {
+    public reservedFor?: Models.other.IProject | Models.system.SystemService) {
     super()
     if (_.isArray(id)) {
       this.id = _.sortBy(id);

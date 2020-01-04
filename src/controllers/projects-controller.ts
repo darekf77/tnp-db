@@ -2,11 +2,12 @@
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fse from 'fs-extra';
-import { Project } from '../../project';
 import { DbCrud } from '../db-crud';
 import { BaseController } from './base-controlller';
 import { ProjectInstance } from '../entites';
-import { config } from '../../config';
+declare const global: any;
+declare const ENV: any;
+const config = ENV.config as any;
 import { CLASS } from 'typescript-class-helpers';
 
 
@@ -19,6 +20,7 @@ export class ProjectsController extends BaseController {
 
   private recognized: ProjectInstance[] = []
   async addExisted() {
+    const Project = CLASS.getBy('Project') as any;
     this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '..')))
     if (global.testMode) {
       this.discoverProjectsInLocation(path.resolve(config.pathes.tnp_tests_context), true)
@@ -71,6 +73,7 @@ export class ProjectsController extends BaseController {
     }
 
     // this.discoverFrom(Project.Tnp);
+    const Project = CLASS.getBy('Project') as any;
     fse.readdirSync(location)
       .map(name => path.join(location, name))
       .map(location => {

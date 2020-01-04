@@ -2,7 +2,6 @@
 import * as _ from 'lodash';
 import { Helpers } from 'tnp-helpers';
 import { PortInstance } from '../entites';
-import { Project } from '../../project';
 import { Models } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
 
@@ -32,7 +31,7 @@ export class PortsSet {
   private makeSmaller(allInstacesSingle: PortInstance[]) {
     const ports: PortInstance[] = []
 
-    let currentProjectLocationOrSystemService: Project | Models.system.SystemService = undefined;
+    let currentProjectLocationOrSystemService: Models.other.IProject | Models.system.SystemService = undefined;
     let curretnPortIns: PortInstance;
     allInstacesSingle.forEach(ins => {
 
@@ -94,12 +93,13 @@ export class PortsSet {
   }
 
   checkIfFreePortAmountEnouth(
-    projectLocationOrSystemService: Project | Models.system.SystemService,
+    projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
     howManyPorts: number, ports: PortInstance[]) {
 
     if (_.isUndefined(howManyPorts) && _.isString(projectLocationOrSystemService)) {
-      const project = Project.From(projectLocationOrSystemService);
-      howManyPorts = 1 + (project.isWorkspace ? project.children.length : 0)
+      const Project = CLASS.getBy('Project') as any;
+      const proj = Project.From(projectLocationOrSystemService);
+      howManyPorts = 1 + (proj.isWorkspace ? proj.children.length : 0)
     }
     let sum = 0;
     ports.forEach(ins => {
@@ -131,13 +131,13 @@ export class PortsSet {
     return allInstaces;
   }
 
-  reserveFreePortsFor(projectLocationOrSystemService: Project | Models.system.SystemService,
+  reserveFreePortsFor(projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
     howManyPorts: number = 1) {
     return this._reserveFreePortsFor(projectLocationOrSystemService, howManyPorts, this.ports);
   }
 
   private _reserveFreePortsFor(
-    projectLocationOrSystemService: Project | Models.system.SystemService,
+    projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
     howManyPorts: number = 1, ports: PortInstance[],
     allInstaces?: PortInstance[]): boolean {
 
@@ -147,14 +147,15 @@ export class PortsSet {
       return false;
     }
 
-    const isProject = (projectLocationOrSystemService && _.isString((projectLocationOrSystemService as Project).location));
+    const isProject = (projectLocationOrSystemService &&
+      _.isString((projectLocationOrSystemService as Models.other.IProject).location));
 
     if (isProject && howManyPorts > 1) {
       throw `One project can only have on port`
     }
 
     if (isProject) {
-      var project = (projectLocationOrSystemService as Project);
+      var project = (projectLocationOrSystemService as Models.other.IProject);
       if (project.isWorkspace || project.isStandaloneProject) {
         saveInstancesToDb = true;
       }

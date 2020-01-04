@@ -5,11 +5,16 @@ import * as  psList from 'ps-list';
 import { BaseController } from './base-controlller';
 import { Helpers } from 'tnp-helpers';
 import { Models } from 'tnp-models';
-import { Project } from '../../project';
+import { Project } from 'tnp'; // @LAST
 import { BuildInstance } from '../entites/build-instance';
-import { BuildOptions } from '../../project/features';
+// import { BuildOptions } from '../../project/features';
 import { CLASS } from 'typescript-class-helpers';
-import { config } from '../../config';
+declare const global: any;
+declare const ENV: any;
+const config = ENV.config as any;
+
+
+
 
 @CLASS.NAME('BuildsController')
 export class BuildsController extends BaseController {
@@ -40,6 +45,7 @@ export class BuildsController extends BaseController {
       .filter(p => p.cmd.split(' ').filter(p => p.endsWith(`/bin/tnp`)).length > 0)
       .map(p => {
         const location = Helpers.getWorkingDirOfProcess(p.pid);
+        const Project = CLASS.getBy('Project') as any;
         const project = Project.From(location)
         if (project) {
           const b = new BuildInstance({
@@ -64,7 +70,7 @@ export class BuildsController extends BaseController {
     this.crud.setBulk(builds, BuildInstance);
   }
 
-  async killInstancesFrom(projects: Project[]) {
+  async killInstancesFrom(projects: Models.other.IProject[]) {
     let projectsLocations = projects.map(p => p.location);
     (this.crud
       .getAll<BuildInstance>(BuildInstance) as BuildInstance[])
@@ -79,7 +85,7 @@ export class BuildsController extends BaseController {
 
   }
 
-  add(project: Project, buildOptions: BuildOptions, pid: number, ppid: number) {
+  add(project: Models.other.IProject, buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number) {
     const currentB = new BuildInstance({
       buildOptions,
       pid,
@@ -89,7 +95,7 @@ export class BuildsController extends BaseController {
     this.crud.addIfNotExist(currentB);
   }
 
-  async getExistedForOptions(project: Project, buildOptions: BuildOptions, pid: number, ppid: number): Promise<BuildInstance> {
+  async getExistedForOptions(project: Models.other.IProject, buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number): Promise<BuildInstance> {
     await this.update();
     const currentB = new BuildInstance({ buildOptions, pid, location: project.location, ppid })
     const all = this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[]

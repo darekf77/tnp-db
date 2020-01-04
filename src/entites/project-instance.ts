@@ -1,12 +1,12 @@
 //#region @backend
 import { DBBaseEntity } from './base-entity';
-import { Project } from '../../project';
 import { CLASS } from 'typescript-class-helpers';
+import { Models } from 'tnp-models';
 
 @CLASS.NAME('ProjectInstance')
 export class ProjectInstance extends DBBaseEntity {
 
-  public static from(project: Project): ProjectInstance {
+  public static from(project: Models.other.IProject): ProjectInstance {
     if (!project) {
       return
     }
@@ -14,6 +14,7 @@ export class ProjectInstance extends DBBaseEntity {
   }
 
   get project() {
+    const Project = CLASS.getBy('Project') as any;
     return Project.From(this.locationOfProject);
   }
 

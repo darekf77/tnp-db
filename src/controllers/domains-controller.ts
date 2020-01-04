@@ -3,7 +3,6 @@ import * as _ from 'lodash';
 
 import { BaseController } from './base-controlller';
 import { DomainInstance, ProjectInstance } from '../entites';
-import { Project } from '../../project';
 import { Models } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
 
@@ -18,8 +17,9 @@ export class DomainsController extends BaseController {
   async addExisted() {
     const domains: DomainInstance[] = [];
 
+    const Project = CLASS.getBy('Project');
     this.crud.getAll<ProjectInstance>(Project).forEach((p) => {
-      const project: Project = p.project;
+      const project: Models.other.IProject = p.project;
       if (!project.isWorkspaceChildProject && project.env &&
         project.env.config && project.env.config.domain) {
 
@@ -42,7 +42,7 @@ export class DomainsController extends BaseController {
   }
 
   private addDomain(address: string, environment: Models.env.EnvironmentName,
-    domains: DomainInstance[], project: Project) {
+    domains: DomainInstance[], project: Models.other.IProject) {
 
     if (!_.isString(address) || address.trim() === '') {
       return

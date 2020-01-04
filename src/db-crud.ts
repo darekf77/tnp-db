@@ -3,7 +3,6 @@ import * as _ from 'lodash';
 
 import { CLASS } from 'typescript-class-helpers'
 
-import { Project } from '../project';
 import { DBBaseEntity } from './entites/base-entity';
 import {
   BuildInstance, PortInstance, DomainInstance,
@@ -11,7 +10,7 @@ import {
   ProcessInstance
 } from './entites';
 import { Helpers } from 'tnp-helpers';
-import { BuildOptions } from '../project/features';
+import { Models } from 'tnp-models';
 
 
 export class DbCrud {
@@ -99,10 +98,12 @@ export class DbCrud {
     return className === 'Project' ? 'projects' : DBBaseEntity.entityNameFromClassName(className) as EntityNames;
   }
 
-  private afterRetrive<T=any>(value: any, entityName: EntityNames): DBBaseEntity {
+  private afterRetrive<T = any>(value: any, entityName: EntityNames): DBBaseEntity {
+    const Project = CLASS.getBy('Project') as any;
     if (entityName === 'builds') {
       const v = value as BuildInstance;
       const ins: BuildInstance = _.merge(new BuildInstance(), v)
+      const BuildOptions = CLASS.getBy('BuildOptions') as any;
       ins.buildOptions = _.merge(new BuildOptions(), ins.buildOptions)
       return ins as any;
     }
@@ -141,6 +142,7 @@ export class DbCrud {
   private preprareEntityForSave(entity: DBBaseEntity) {
     // console.log(`prerpare entity, typeof ${typeof entity}`, entity)
     // console.log('typeof BuildInstance', typeof BuildInstance)
+    const BuildOptions = CLASS.getBy('BuildOptions') as any;
 
     [BuildInstance, PortInstance, CommandInstance, DomainInstance, ProjectInstance]
       .find(f => {
@@ -164,8 +166,8 @@ export class DbCrud {
       const port = entity as PortInstance;
       return _.cloneDeep({
         id: port.id,
-        reservedFor: !!port.reservedFor && _.isString((port.reservedFor as Project).location) ?
-          (port.reservedFor as Project).location : port.reservedFor
+        reservedFor: !!port.reservedFor && _.isString((port.reservedFor as Models.other.IProject).location) ?
+          (port.reservedFor as Models.other.IProject).location : port.reservedFor
       } as PortInstance);
     }
 
