@@ -82,11 +82,15 @@ export class DBTransaction {
       return
     }
     await this.start(`set command: ${command} in location: ${location}`, () => {
-      const c = new CommandInstance(command, location);
-      if (_.isString(c.command) && !c.command.trim().startsWith('tnp b')) {
-        return;
+
+      const cb = new CommandInstance(command, location);
+      if (_.isString(cb.command) && cb.command.trim().startsWith(`${config.frameworkName} b`)) {
+        cb.isBuildCommand = true;
+        this.crud.set(cb);
+      } else {
+        const c = new CommandInstance(command, location);
+        this.crud.set(c);
       }
-      this.crud.set(c)
     })
   }
 
@@ -194,6 +198,27 @@ export class DBTransaction {
     });
   }
 
+  public appBuildWaitForDistBuild(currentProject: Models.other.IProject, firstTime = true) {
+    return new Promise(async resolve => {
+      const founded = await this.__buildsCtrl.distBuildFoundedFor(currentProject);
+      const buildCommand = this.__commandsCtrl.lastCommandFrom(currentProject.location, true);
+      const { forClient }: { forClient: string[] } = require('minimist')(buildCommand.command.split(' '))
+      if (!_.isUndefined(founded) && buildCommand && _.isArray(forClient) && forClient.includes(currentProject.name)) {
+        setTimeout(async () => {
+          Helpers.info(`Dist build founded... angular serve will start shortly...`);
+          resolve();
+        }, 10000);
+        return;
+      }
+      firstTime && Helpers.info(`Before app build, please run dist build watch command for this project: ${config.frameworkName} bdw`);
+      setTimeout(async () => {
+        this.appBuildWaitForDistBuild(currentProject, false).then(() => {
+          resolve();
+        })
+      }, 2000)
+    });
+  }
+
   public async updateBuildsWithCurrent(currentProject: Models.other.IProject,
     buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
     // console.log('current build options', buildOptions)
@@ -225,7 +250,7 @@ export class DBTransaction {
               process.exit(0)
             }
           }
-        } else if (!existed) {
+        } else {
           this.__buildsCtrl.add(currentProject, buildOptions, pid, ppid);
         }
         break;

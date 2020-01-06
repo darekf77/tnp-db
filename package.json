@@ -9,6 +9,12 @@
       "../tnp-models"
     ],
     "overrided": {
+      "tsconfig": {
+        "compilerOptions": {
+          "allowJs": true,
+          "noEmit": true
+        }
+      },
       "ignoreDepsPattern": [],
       "includeAsDev": [],
       "includeOnly": [],

@@ -27,9 +27,10 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     const BuildOptions = CLASS.getBy('BuildOptions') as any;
     const Project = CLASS.getBy('Project') as any;
 
-    const { buildOptions, pid, location, cmd } = data;
+    const { buildOptions, pid, ppid, location, cmd } = data;
     this.buildOptions = buildOptions;
     this.pid = pid;
+    this.ppid = ppid;
     this.cmd = CommandInstance.fixedCommand(cmd);
     this.location = location;
 

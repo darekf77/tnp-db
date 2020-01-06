@@ -1,7 +1,7 @@
 //#region @backend
 import * as _ from 'lodash';
 declare const global: any;
-const start = global.start as any;
+// const start = global.start as any;
 import { Helpers } from 'tnp-helpers';
 
 import { BaseController } from './base-controlller';
@@ -21,18 +21,33 @@ export class CommandsController extends BaseController {
   }
 
 
-  lastCommandFrom(location: string): CommandInstance {
+  lastCommandFrom(location: string, buildCommand = false): CommandInstance {
     const commands = this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
-    const cmd = commands.find(c => c.location === location)
+    let cmd;
+    if (buildCommand) {
+      cmd = commands.find(c => {
+        return (c.location === location && c.isBuildCommand)
+      });
+    } else {
+      cmd = commands.find(c => {
+        return (c.location === location && !c.isBuildCommand)
+      });
+      if (!cmd) {
+        cmd = commands.find(c => {
+          return (c.location === location && c.isBuildCommand)
+        });
+      }
+    }
     return cmd;
   }
 
   async runCommand(cmd: CommandInstance) {
+    // console.log('global', global.start)
 
     if (cmd && _.isString(cmd.command) && cmd.command.trim() !== '') {
-      await start(cmd.command.split(' '), void 0);
+      await global.start(cmd.command.split(' '), void 0);
     } else {
-      Helpers.error(`Last command for location: ${cmd.location} doen't exists`, false, true);
+      Helpers.error(`Last ${cmd.isBuildCommand ? 'build' : ''} command for location: ${cmd.location} doen't exists`, false, true);
     }
 
   }
@@ -40,14 +55,14 @@ export class CommandsController extends BaseController {
     const commands = this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
     const cmd = commands.find(c => c.location === location)
     if (cmd) {
-      await start(cmd.command.split(' '), void 0);
+      await global.start(cmd.command.split(' '), void 0);
     } else {
       Helpers.error(`Last command for location: ${cmd.location} doen't exists`, false, true);
     }
   }
 
   updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
-    const cmd = this.lastCommandFrom(location);
+    const cmd = this.lastCommandFrom(location, true);
     if (cmd) {
       const clients = _.isArray(buildOptions.forClient) ? (buildOptions.forClient as any[])
         .map((c: Models.other.IProject) => {

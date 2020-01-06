@@ -13,9 +13,17 @@ const config = ENV.config as any;
 
 export async function $LAST(args: string) {
   const db = await TnpDB.Instance(config.dbLocation);
-  const last = db.lastCommandFrom(process.cwd());
+  const last = db.lastCommandFrom(process.cwd(), false);
   // console.log('last commadn to run', last)
   await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd()));
+  // process.exit(0)
+}
+
+export async function $LAST_BUILD(args: string) {
+  const db = await TnpDB.Instance(config.dbLocation);
+  const last = db.lastCommandFrom(process.cwd(), true);
+  // console.log('last commadn to run', last)
+  await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd(), true));
   // process.exit(0)
 }
 
@@ -24,9 +32,9 @@ const $DB = async (args: string) => {
 
   if (args.trim() === 'reinit') {
     await db.init()
-    db.transaction.setCommand('tnp db reinit')
+    db.transaction.setCommand(`${config.frameworkName} db reinit`)
   } else {
-    db.transaction.setCommand('tnp db')
+    db.transaction.setCommand(`${config.frameworkName} db`)
   }
 
   process.exit(0)
@@ -72,6 +80,7 @@ export default {
   $DB: Helpers.CLIWRAP($DB, '$DB'),
   $DB_REINIT: Helpers.CLIWRAP($DB_REINIT, '$DB_REINIT'),
   $LAST: Helpers.CLIWRAP($LAST, '$LAST'),
+  $LAST_BUILD: Helpers.CLIWRAP($LAST_BUILD, '$LAST_BUILD'),
   $EXISTS: Helpers.CLIWRAP($EXISTS, '$EXISTS')
 }
 

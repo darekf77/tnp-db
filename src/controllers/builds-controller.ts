@@ -94,11 +94,22 @@ export class BuildsController extends BaseController {
     this.crud.addIfNotExist(currentB);
   }
 
-  async getExistedForOptions(project: Models.other.IProject, buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number): Promise<BuildInstance> {
+  async distBuildFoundedFor(project: Models.other.IProject) {
+    await this.update();
+    const all = this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
+    return all.find(b => b.location === project.location && b.buildOptions
+      && b.buildOptions.watch === true
+      && b.buildOptions.appBuild === false
+    );
+  }
+
+  async getExistedForOptions(project: Models.other.IProject, buildOptions: Models.dev.IBuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {
     await this.update();
     const currentB = new BuildInstance({ buildOptions, pid, location: project.location, ppid })
     const all = this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[]
-    const existed = all.find(b => b.isEqual(currentB))
+    const existed = all.find(b => {
+      return b.isEqual(currentB);
+    })
     if (_.isObject(existed)) {
       return existed;
     }

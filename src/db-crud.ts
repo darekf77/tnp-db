@@ -27,10 +27,12 @@ export class DbCrud {
 
   getAll<T extends DBBaseEntity>(classFN: Function): T[] {
     const entityName: EntityNames = this.getEntityNameByClassFN(classFN);
-    // console.log('entity name from object', entityName)
-    const res = (this.db.get(entityName).value() as T[])
-    // console.log('res', res)
-    if (_.isArray(res) && res.length > 0) {
+    // console.log(`${CLASS.getName(classFN)} entity name from object`, entityName);
+    // process.exit(0)
+    this.db.read();
+    const res = (this.db.get(entityName).value() as T[]);
+    // console.log(`${CLASS.getName(classFN)}, entity ${entityName}, res`, res)
+    if (_.isArray(res)) {
       return res.map(v => this.afterRetrive(v, entityName)).filter(f => !!f) as any;
     }
     return [];
@@ -109,7 +111,7 @@ export class DbCrud {
     }
     if (entityName === 'commands') {
       const cmd = value as CommandInstance;
-      const c = new CommandInstance(cmd.command, cmd.location);
+      const c = new CommandInstance(cmd.command, cmd.location, !!cmd.isBuildCommand);
       return c as any;
     }
     if (entityName === 'domains') {
@@ -153,10 +155,11 @@ export class DbCrud {
       })
 
     if (entity instanceof BuildInstance) {
-      const { pid, project, location, buildOptions, cmd } = entity as BuildInstance;
+      const { pid, ppid, project, location, buildOptions, cmd } = entity as BuildInstance;
       return _.cloneDeep({
         buildOptions: _.merge({}, _.omit(buildOptions, BuildOptions.PropsToOmmitWhenStringify)),
         pid,
+        ppid,
         cmd,
         location: _.isString(location) ? location : (!!project && project.location)
       }) as BuildInstance;
@@ -173,9 +176,9 @@ export class DbCrud {
 
     if (entity instanceof CommandInstance) {
       const cmd = entity as CommandInstance;
-      const { command, location } = cmd;
+      const { command, location, isBuildCommand } = cmd;
       return _.cloneDeep({
-        command, location
+        command, location, isBuildCommand
       } as CommandInstance);
     }
 

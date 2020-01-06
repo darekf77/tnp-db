@@ -19,9 +19,10 @@ export class DBMonitCommands {
     const cmds = this.db.getCommands();
     Helpers.clearConsole();
     Helpers.info(`COMMANDS ${++this.counter} :`)
-    cmds.forEach(p => {
-      Helpers.log(`\t${p.location}\t${p.command}\t${p.shortCommandForLastCommand}\n`);
-    });
+    console.table(cmds)
+    // cmds.forEach(p => {
+    //   Helpers.log(`\t${p.location}\t${p.command}\t${p.shortCommandForLastCommand}\n`);
+    // });
 
     setTimeout(() => {
       this.repeat(n + 1)

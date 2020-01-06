@@ -7,12 +7,13 @@ import { CLASS } from 'typescript-class-helpers';
 @CLASS.NAME('CommandInstance')
 export class CommandInstance extends DBBaseEntity {
   isEqual(anotherInstace: CommandInstance): boolean {
-    return this.location === anotherInstace.location;
+    return (this.location === anotherInstace.location && this.isBuildCommand === anotherInstace.isBuildCommand)
   }
 
   constructor(
     public command?: string,
     public location?: string,
+    public isBuildCommand: boolean = false,
   ) {
     super()
     this.command = CommandInstance.fixedCommand(command)

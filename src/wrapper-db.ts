@@ -121,8 +121,8 @@ export class TnpDB {
   constructor(private location: string) {
   }
 
-  lastCommandFrom(location: string) {
-    return this.__commandsCtrl.lastCommandFrom(location)
+  lastCommandFrom(location: string, buildCommand = false) {
+    return this.__commandsCtrl.lastCommandFrom(location, buildCommand)
   }
 
 
