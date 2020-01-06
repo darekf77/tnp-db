@@ -35,21 +35,16 @@ export class TnpDB {
 
 
   private static _instance: TnpDB;
-  private static async instance() {
+  private static async instance(location) {
     if (!this._instance) {
-      let dbPath = `bin/db.json`;
-      if (global.testMode) {
-        dbPath = `bin/${config.folder.tnp_db_for_tests_json}`;
-      }
-      const Project = CLASS.getBy('Project') as any;
-      const location = path.join(Project.Tnp.location, dbPath);
+
       this._instance = new TnpDB(location)
       await this._instance.init(!fse.existsSync(location))
     }
     return this._instance;
   }
-  public static get Instance() {
-    return this.instance()
+  public static Instance(dbLocation: string) {
+    return this.instance(dbLocation)
   }
 
   public static get InstanceSync() {
