@@ -97,10 +97,67 @@ export class BuildsController extends BaseController {
   async distBuildFoundedFor(project: Models.other.IProject) {
     await this.update();
     const all = this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
-    return all.find(b => b.location === project.location && b.buildOptions
+    const result = all.find(b => {
+      // if(b.location === '/Users/darek/projects/npm/firedev-projects/container-v2/workspace-v2/angular-lib-v2') {
+      //   console.log('checking ', b.location)
+      //   console.log('cmd ', b.cmd)
+      //   console.log('b.buildOptions.forClient ', b.buildOptions && (b.buildOptions.forClient as any[]).map(c => c.name));
+      // }
+
+      return b.location === project.location
+        && b.buildOptions
+        && b.buildOptions.watch === true
+        && b.buildOptions.appBuild === false
+        && (project.isStandaloneProject ? true :
+          _.isObject(
+            (b.buildOptions.forClient as Models.other.IProject[]).find(c => {
+              // console.log(`checking ${c.name}`)
+              return c.location === project.location;
+            }))
+        );
+    });
+    // console.log(`result: ${!!result}`)
+    return result;
+  }
+
+  async appBuildFoundedFor(project: Models.other.IProject) {
+    await this.update();
+    const all = this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
+    const possibleLocation = [];
+    if (project.isStandaloneProject) {
+      possibleLocation.push(project.location);
+    } else if (project.isWorkspaceChildProject) {
+      project.parent.children.forEach(c => {
+        possibleLocation.push(c.location);
+      });
+    }
+
+    // console.log('possibleLocation', possibleLocation);
+    // console.log('all', all.map(c => {
+    //   return `${c.location},
+    //    appBuild: ${c.buildOptions.appBuild}
+    //    watch: ${c.buildOptions.watch}
+    //    `
+    // }))
+
+    const result = all.filter(b =>
+      b.buildOptions
       && b.buildOptions.watch === true
-      && b.buildOptions.appBuild === false
+      && b.buildOptions.appBuild === true
+      && possibleLocation.includes(b.location)
     );
+    // console.log('result', result.map(c => {
+    //   return `${c.location},
+    //    appBuild: ${c.buildOptions.appBuild}
+    //    watch: ${c.buildOptions.watch}
+    //    `
+    // }))
+    return result;
+  }
+
+  async getExistedByPid(pid: number) {
+    const all = this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
+    return all.find(a => a.pid === pid);
   }
 
   async getExistedForOptions(project: Models.other.IProject, buildOptions: Models.dev.IBuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {

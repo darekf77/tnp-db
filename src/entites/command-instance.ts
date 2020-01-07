@@ -3,6 +3,8 @@ import * as _ from 'lodash';
 
 import { DBBaseEntity } from './base-entity';
 import { CLASS } from 'typescript-class-helpers';
+declare const ENV: any;
+const config = ENV.config as any;
 
 @CLASS.NAME('CommandInstance')
 export class CommandInstance extends DBBaseEntity {
@@ -30,7 +32,7 @@ export class CommandInstance extends DBBaseEntity {
       return command;
     }
     // console.log('founded index', i)
-    let res = `tnp ${args.slice(i + 1, args.length).join(' ')}`
+    let res = `${config.frameworkName} ${args.slice(i + 1, args.length).join(' ')}`
     // console.log('res', res)
     return res;
   }

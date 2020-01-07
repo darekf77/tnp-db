@@ -104,9 +104,7 @@ export class DbCrud {
     const Project = CLASS.getBy('Project') as any;
     if (entityName === 'builds') {
       const v = value as BuildInstance;
-      const ins: BuildInstance = _.merge(new BuildInstance(), v)
-      const BuildOptions = CLASS.getBy('BuildOptions') as any;
-      ins.buildOptions = _.merge(new BuildOptions(), ins.buildOptions)
+      const ins: BuildInstance = new BuildInstance(v);
       return ins as any;
     }
     if (entityName === 'commands') {
@@ -144,7 +142,6 @@ export class DbCrud {
   private preprareEntityForSave(entity: DBBaseEntity) {
     // console.log(`prerpare entity, typeof ${typeof entity}`, entity)
     // console.log('typeof BuildInstance', typeof BuildInstance)
-    const BuildOptions = CLASS.getBy('BuildOptions') as any;
 
     [BuildInstance, PortInstance, CommandInstance, DomainInstance, ProjectInstance]
       .find(f => {
@@ -155,9 +152,8 @@ export class DbCrud {
       })
 
     if (entity instanceof BuildInstance) {
-      const { pid, ppid, project, location, buildOptions, cmd } = entity as BuildInstance;
+      const { pid, ppid, project, location, cmd } = entity as BuildInstance;
       return _.cloneDeep({
-        buildOptions: _.merge({}, _.omit(buildOptions, BuildOptions.PropsToOmmitWhenStringify)),
         pid,
         ppid,
         cmd,

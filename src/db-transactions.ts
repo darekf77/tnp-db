@@ -198,28 +198,18 @@ export class DBTransaction {
     });
   }
 
-  public appBuildWaitForDistBuild(currentProject: Models.other.IProject, firstTime = true) {
-    return new Promise(async resolve => {
-      const founded = await this.__buildsCtrl.distBuildFoundedFor(currentProject);
-      const buildCommand = this.__commandsCtrl.lastCommandFrom(currentProject.location, true);
-      const { forClient }: { forClient: string[] } = require('minimist')(buildCommand.command.split(' '))
-      if (!_.isUndefined(founded) && buildCommand && _.isArray(forClient) && forClient.includes(currentProject.name)) {
-        setTimeout(async () => {
-          Helpers.info(`Dist build founded... angular serve will start shortly...`);
-          resolve();
-        }, 10000);
-        return;
-      }
-      firstTime && Helpers.info(`Before app build, please run dist build watch command for this project: ${config.frameworkName} bdw`);
-      setTimeout(async () => {
-        this.appBuildWaitForDistBuild(currentProject, false).then(() => {
-          resolve();
-        })
-      }, 2000)
+  public async updateBuildOptions(buildOptions: Models.dev.IBuildOptions, pid: number) {
+    // console.log('current build options', buildOptions)
+    await this.start(`update builds options`, async () => {
+      const existed = await this.__buildsCtrl.getExistedByPid(pid);
+      existed.updateCmdFrom(buildOptions);
+      // console.log(existed);
+      this.crud.set(existed);
+      // process.exit(0)
     });
   }
 
-  public async updateBuildsWithCurrent(currentProject: Models.other.IProject,
+  public async checkBuildIfAllowed(currentProject: Models.other.IProject,
     buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
     // console.log('current build options', buildOptions)
     await this.start(`update builds with current`, async () => {
@@ -232,9 +222,7 @@ export class DBTransaction {
         }
 
         const existed = await this.__buildsCtrl.getExistedForOptions(currentProject, buildOptions, pid, ppid);
-
         if (existed) {
-
           if (!existed.buildOptions.watch) {
             Helpers.warn('automatic kill of active build instance in static build mode')
             this.killAndRemove(existed)

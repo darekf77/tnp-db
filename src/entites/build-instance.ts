@@ -27,24 +27,20 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     const BuildOptions = CLASS.getBy('BuildOptions') as any;
     const Project = CLASS.getBy('Project') as any;
 
-    const { buildOptions, pid, ppid, location, cmd } = data;
-    this.buildOptions = buildOptions;
-    this.pid = pid;
-    this.ppid = ppid;
-    this.cmd = CommandInstance.fixedCommand(cmd);
-    this.location = location;
+    this.pid = data.pid;
+    this.ppid = data.ppid;
+    this.location = data.location;
 
-    if (!this.cmd && !this.buildOptions) {
-      // console.log('create empty IBuildInstance ')
+    this.cmd = CommandInstance.fixedCommand(data.cmd);
+    if (this.cmd) {
+      this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
     } else {
-      if (!this.cmd) {
-
-        this.cmd = BuildOptions.exportToCMD(this.buildOptions);
-      }
-
-      if (!this.buildOptions && !!Project.From(process.cwd())) {
-        const project: Models.other.IProject = Project.Current;
-        this.buildOptions = BuildOptions.from(this.cmd, project)
+      if (_.isObject(data.buildOptions)) {
+        this.cmd = BuildOptions.exportToCMD(data.buildOptions);
+        this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
+      } else {
+        this.cmd = '';
+        this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
       }
     }
 
@@ -58,8 +54,17 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     return res;
   }
 
+  updateCmdFrom(buildOptions: Models.dev.IBuildOptions) {
+    const BuildOptions = CLASS.getBy('BuildOptions') as any;
+    const Project = CLASS.getBy('Project') as any;
+    this.cmd = BuildOptions.exportToCMD(buildOptions);
+    this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
+  }
 
-  buildOptions: Models.dev.IBuildOptions;
+  private _buildOptions: Models.dev.IBuildOptions;
+  get buildOptions() {
+    return this._buildOptions;
+  }
   cmd?: string;
 
   isEqual(anotherInstace: BuildInstance) {

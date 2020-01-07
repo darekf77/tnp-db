@@ -98,6 +98,14 @@ export class TnpDB {
 
   }
 
+  distBuildFoundedFor(project: Models.other.IProject) {
+    return this.__buildsCtrl.distBuildFoundedFor(project)
+  }
+
+  appBuildFoundedFor(project: Models.other.IProject) {
+    return this.__buildsCtrl.appBuildFoundedFor(project)
+  }
+
   public getProjects(): ProjectInstance[] {
     return this.crud.getAll(ProjectInstance)
   }
