@@ -25,12 +25,17 @@ export class BuildsController extends BaseController {
     const ps: Models.system.PsListInfo[] = await psList();
     const all = this.crud.getAll<BuildInstance>(BuildInstance);
     // console.log('[UPDATE BUILDS] BEFORE FILTER', all.map(c => c.pid))
-    const filteredBuilds = all.filter(b => ps.filter(p => {
-      const pidEqual = (p.pid == b.pid);
-      const isNodeCommand = (p.cmd.search('node') !== -1)
-      const isFrameworkCommand = (p.cmd.search(config.frameworkName) !== -1)
-      return pidEqual && isFrameworkCommand && isNodeCommand;
-    }).length > 0);
+    const filteredBuilds = all.filter(b => {
+
+      const exists = (ps.filter(p => {
+        const pidEqual = (p.pid === b.pid);
+        const isNodeCommand = (p.cmd.search('node') !== -1);
+        const isFrameworkCommand = (p.cmd.search(config.frameworkName) !== -1);
+        return pidEqual && isFrameworkCommand && isNodeCommand;
+      }).length > 0)
+
+      return exists;
+    });
 
 
 

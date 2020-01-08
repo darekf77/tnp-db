@@ -76,9 +76,10 @@ export class CommandsController extends BaseController {
 
       cmd.command = cmd.command + ' ' + clients + ' ' + copyto;
       this.crud.set(cmd)
-    } else {
-      Helpers.warn(`Cannot update unexisted last commadn in location: ${location}`)
     }
+    // else {
+    //   Helpers.warn(`Cannot update unexisted last commadn in location: ${location}`)
+    // }
   }
 
 

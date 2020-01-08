@@ -102,6 +102,7 @@ export class DBTransaction {
 
   public async reinitDB() {
     await this.start(`Reinit db`, async () => {
+      Helpers.log(`[db][reinit] writing default values`);
       this.crud.clearDBandReinit({
         projects: [],
         domains: [],
@@ -110,12 +111,19 @@ export class DBTransaction {
         commands: [],
         processes: []
       });
+      Helpers.log(`[db][reinit] adding existed projects`);
       await this.__projectsCtrl.addExisted()
+      Helpers.log(`[db][reinit] adding existed domains`);
       await this.__domainsCtrl.addExisted()
+      Helpers.log(`[db][reinit] adding existed commands`);
       await this.__commandsCtrl.addExisted()
+      Helpers.log(`[db][reinit] adding existed ports`);
       await this.__portsCtrl.addExisted()
+      Helpers.log(`[db][reinit] adding existed builds`);
       await this.__buildsCtrl.addExisted()
+      Helpers.log(`[db][reinit] adding existed processes`);
       await this.__processCtrl.addExisted()
+      Helpers.info(`[db][reinit] DONE`);
     })
   }
 
@@ -193,6 +201,7 @@ export class DBTransaction {
   }
 
   public async updateProcesses() {
+    Helpers.log(`[db] Updating buillds...`)
     await this.start(`update processes`, async () => {
       await this.__buildsCtrl.update();
     });
@@ -223,7 +232,7 @@ export class DBTransaction {
 
         const existed = await this.__buildsCtrl.getExistedForOptions(currentProject, buildOptions, pid, ppid);
         if (existed) {
-          if (!existed.buildOptions.watch) {
+          if (!existed.buildOptions.watch || global.tnpNonInteractive) {
             Helpers.warn('automatic kill of active build instance in static build mode')
             this.killAndRemove(existed)
             continue;
@@ -255,62 +264,63 @@ export class DBTransaction {
 
   private async start(name: string, callback: () => void,
     previousFileStatus: 'none' | 'empty' | 'written-started' = 'none') {
+    await Helpers.runSyncOrAsync(callback);
     // name = '-'
-    const debug = false;
+    // const debug = true;
 
-    debug && Helpers.log(`Transaction started for pid: ${process.pid},`
-      + ` name: ${chalk.bold(name)}`)
+    // debug && Helpers.log(`Transaction started for pid: ${process.pid},`
+    //   + ` name: ${chalk.bold(name)}`)
 
-    let rewriteFile = true;
-    const transactionFilePath = config.pathes.tmp_transaction_pid_txt;
+    // let rewriteFile = true;
+    // const transactionFilePath = config.pathes.tmp_transaction_pid_txt;
 
-    if (fse.existsSync(transactionFilePath)) {
-      try {
-        var pidString = Helpers.readFile(transactionFilePath);
-      } catch (e) { }
+    // if (fse.existsSync(transactionFilePath)) {
+    //   try {
+    //     var pidString = Helpers.readFile(transactionFilePath);
+    //   } catch (e) { }
 
-      if (previousFileStatus === 'none' && _.isString(pidString) && pidString.trim() === '') {
-        debug && Helpers.log(`Waiting shortly if other process is goint to write something to file  - current pid: ${process.pid} `)
-        sleep.msleep(500);
-        await this.start(name, callback, 'empty')
-        return;
-      }
-      if ((previousFileStatus === 'none' || previousFileStatus === 'empty') &&
-        _.isString(pidString) && pidString.startsWith('[') && !pidString.endsWith(']')) {
-        debug && Helpers.log(`Waiting for other process to finish wiring pid - current pid: ${process.pid}`)
-        sleep.msleep(500);
-        await this.start(name, callback, 'written-started')
-        return;
-      }
-      if (_.isString(pidString) && pidString.startsWith('[') && pidString.endsWith(']')) {
-        var pidInFile = Number(pidString.replace(/^\[/, '').replace(/\]$/, ''))
-      }
-      if (!isNaN(pidInFile) && pidInFile > 0) {
+    //   if (previousFileStatus === 'none' && _.isString(pidString) && pidString.trim() === '') {
+    //     debug && Helpers.log(`Waiting shortly if other process is goint to write something to file  - current pid: ${process.pid} `)
+    //     sleep.msleep(500);
+    //     await this.start(name, callback, 'empty')
+    //     return;
+    //   }
+    //   if ((previousFileStatus === 'none' || previousFileStatus === 'empty') &&
+    //     _.isString(pidString) && pidString.startsWith('[') && !pidString.endsWith(']')) {
+    //     debug && Helpers.log(`Waiting for other process to finish wiring pid - current pid: ${process.pid}`)
+    //     sleep.msleep(500);
+    //     await this.start(name, callback, 'written-started')
+    //     return;
+    //   }
+    //   if (_.isString(pidString) && pidString.startsWith('[') && pidString.endsWith(']')) {
+    //     var pidInFile = Number(pidString.replace(/^\[/, '').replace(/\]$/, ''))
+    //   }
+    //   if (!isNaN(pidInFile) && pidInFile > 0) {
 
-        if (process.ppid === pidInFile || process.pid === pidInFile) {
-          rewriteFile = false;
-        } else {
-          let ps: Models.system.PsListInfo[] = await psList()
-          if (ps.filter(p => p.pid == pidInFile).length >= 1) {
+    //     if (process.ppid === pidInFile || process.pid === pidInFile) {
+    //       rewriteFile = false;
+    //     } else {
+    //       let ps: Models.system.PsListInfo[] = await psList()
+    //       if (ps.filter(p => p.pid == pidInFile).length >= 1) {
 
-            debug && Helpers.log(`Waiting for transaction on pid ${pidInFile} to end - current pid: ${process.pid}`)
-            sleep.msleep(500);
-            await this.start(name, callback)
-            return;
-          }
-        }
-      }
-    }
-    if (rewriteFile) {
-      Helpers.writeFile(transactionFilePath, `[${process.pid}]`);
-    }
+    //         debug && Helpers.log(`Waiting for transaction on pid ${pidInFile} to end - current pid: ${process.pid}`)
+    //         sleep.msleep(500);
+    //         await this.start(name, callback)
+    //         return;
+    //       }
+    //     }
+    //   }
+    // }
+    // if (rewriteFile) {
+    //   Helpers.writeFile(transactionFilePath, `[${process.pid}]`);
+    // }
 
-    await Helpers.runSyncOrAsync(callback)
-    if (rewriteFile) {
-      Helpers.removeFileIfExists(transactionFilePath);
-    }
-    debug && console.log(`Transaction ${!rewriteFile ? `(inside transaction with pid: ${process.ppid})`
-      : ''} ended for pid: ${process.pid}, name: ${chalk.bold(name)}`)
+    // await Helpers.runSyncOrAsync(callback)
+    // if (rewriteFile) {
+    //   Helpers.removeFileIfExists(transactionFilePath);
+    // }
+    // debug && console.log(`Transaction ${!rewriteFile ? `(inside transaction with pid: ${process.ppid})`
+    //   : ''} ended for pid: ${process.pid}, name: ${chalk.bold(name)}`)
   }
 
 

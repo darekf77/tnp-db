@@ -61,13 +61,14 @@ export class TnpDB {
 
 
   public async init(recreate = true) {
+    Helpers.log('[db] recreate db instance');
     if (recreate) {
       Helpers.writeFile(this.location, '')
     }
     this._adapter = new FileSync(this.location)
     this.db = low(this._adapter)
     this.crud = new DbCrud(this.db);
-
+    Helpers.log('[db] Writed default favlues');
     this.__projectsCtrl = new ProjectsController(this.crud);
     this.__domainsCtrl = new DomainsController(this.crud);
     this.__buildsCtrl = new BuildsController(this.crud);
@@ -86,10 +87,14 @@ export class TnpDB {
     );
 
 
-
+    Helpers.log('[db] controllers inited');
 
     if (recreate) {
-      await this.transaction.reinitDB()
+      Helpers.log('[db] reinit transacton started');
+      Helpers.log(`REMOVE FILE ${config.pathes.tmp_transaction_pid_txt}`)
+      Helpers.removeFileIfExists(config.pathes.tmp_transaction_pid_txt);
+      await this.transaction.reinitDB();
+      Helpers.log('[db] reinit transacton finish');
     }
   }
 
