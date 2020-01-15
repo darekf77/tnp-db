@@ -100,7 +100,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   location?: string;
   get project() {
     const Project = CLASS.getBy('Project') as any;
-    return Project.From(this.location);
+    return Project.From(this.location) as Models.other.IProject;
   }
 
 }

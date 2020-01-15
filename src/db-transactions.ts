@@ -231,20 +231,26 @@ export class DBTransaction {
         }
 
         const existed = await this.__buildsCtrl.getExistedForOptions(currentProject, buildOptions, pid, ppid);
-        if (existed) {
-          if (!existed.buildOptions.watch || global.tnpNonInteractive) {
-            Helpers.warn('automatic kill of active build instance in static build mode')
+        if (existed && currentProject.isGenerated === existed.project.isGenerated) {
+          if (global.tnpNonInteractive) {
+            Helpers.warn('automatic kill of active build instance in static build mode');
             this.killAndRemove(existed)
             continue;
-          } else {
-            console.log(`Current process pid: ${process.pid}`)
-            const confirm = await Helpers.questionYesNo(`There is active process on pid ${existed.pid}, do you wanna kill this process ?
+          } else if (existed.pid !== process.pid) {
+            Helpers.log(`
+
+            Current process pid: ${process.pid}, current ppid: ${process.ppid}
+
+            `)
+            const confirm = await Helpers.questionYesNo(`
+
+            There is active process on pid ${existed.pid}, do you wanna kill this process ?
            build options: ${existed.buildOptions.toString()}`)
             if (confirm) {
               this.killAndRemove(existed)
               continue;
             } else {
-              process.exit(0)
+              process.exit(0);
             }
           }
         } else {
