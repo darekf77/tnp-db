@@ -3,7 +3,6 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fse from 'fs-extra';
 import * as  psList from 'ps-list';
-import * as sleep from 'sleep';
 
 import { Helpers } from 'tnp-helpers';
 
