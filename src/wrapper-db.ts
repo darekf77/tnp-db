@@ -61,14 +61,14 @@ export class TnpDB {
 
 
   public async init(recreate = true) {
-    Helpers.log('[db] recreate db instance');
+    // Helpers.log('[db] recreate db instance');
     if (recreate) {
       Helpers.writeFile(this.location, '');
     }
     this._adapter = new FileSync(this.location);
     this.db = low(this._adapter)
     this.crud = new DbCrud(this.db);
-    Helpers.log('[db] Writed default values');
+    // Helpers.log('[db] Writed default values');
     this.__projectsCtrl = new ProjectsController(this.crud);
     this.__domainsCtrl = new DomainsController(this.crud);
     this.__buildsCtrl = new BuildsController(this.crud);
@@ -87,7 +87,7 @@ export class TnpDB {
     );
 
 
-    Helpers.log('[db] controllers inited');
+    // Helpers.log('[db] controllers inited');
 
     if (recreate) {
       Helpers.log('[db] reinit transacton started');

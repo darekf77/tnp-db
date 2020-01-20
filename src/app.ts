@@ -37,7 +37,7 @@ export default async function () {
     const key = keysparams[index];
     const isMatch = Helpers.cliTool.match(key, process.argv.slice(2));
     if (isMatch) {
-      console.log('adsasda!!', key)
+      // console.log('adsasda!!', key)
       fromParam = true;
       DB[key]();
       process.stdin.resume();
@@ -47,8 +47,8 @@ export default async function () {
   if (!fromParam) {
 
     const projects = db.getProjects();
-    console.log(projects.map(p => path.basename(p.project.location)))
-    console.log('done!')
+    // console.log(projects.map(p => path.basename(p.project.location)))
+    // console.log('done!')
   }
 
 }

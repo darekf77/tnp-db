@@ -91,7 +91,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   }
 
   kill() {
-    console.log(`Killing ${this.brief}`)
+    Helpers.log(`Killing ${this.brief}`)
     Helpers.killProcess(this.pid)
   }
 

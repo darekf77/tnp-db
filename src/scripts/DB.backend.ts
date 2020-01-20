@@ -20,11 +20,23 @@ export async function $LAST(args: string) {
 }
 
 export async function $LAST_BUILD(args: string) {
+
   const db = await TnpDB.Instance(config.dbLocation);
   const last = db.lastCommandFrom(process.cwd(), true);
   // console.log('last commadn to run', last)
   await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd(), true));
   // process.exit(0)
+}
+
+export async function $SHOW_LAST(args: string) {
+  global.muteMessages = true;
+  const db = await TnpDB.Instance(config.dbLocation);
+  const last = db.lastCommandFrom(process.cwd(), true);
+  global.muteMessages = false;
+  Helpers.log(last.command);
+  // console.log('last commadn to run', last)
+  // await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd(), true));
+  process.exit(0);
 }
 
 const $DB = async (args: string) => {
@@ -56,9 +68,9 @@ async function $MONIT_COMMANDS() {
 async function $EXISTS(args: string) {
   const pid = Number(args.trim())
   const ps: Models.system.PsListInfo[] = await psList();
-  console.log(`process.pid: ${process.pid}`)
-  console.log(`pid to check: ${pid}`)
-  console.log(!!ps.find(p => p.pid === pid))
+  Helpers.log(`process.pid: ${process.pid}`)
+  Helpers.log(`pid to check: ${pid}`)
+  // console.log(!!ps.find(p => p.pid === pid))
   process.exit(0)
 }
 
@@ -81,6 +93,7 @@ export default {
   $DB_REINIT: Helpers.CLIWRAP($DB_REINIT, '$DB_REINIT'),
   $LAST: Helpers.CLIWRAP($LAST, '$LAST'),
   $LAST_BUILD: Helpers.CLIWRAP($LAST_BUILD, '$LAST_BUILD'),
+  $SHOW_LAST: Helpers.CLIWRAP($SHOW_LAST, '$SHOW_LAST'),
   $EXISTS: Helpers.CLIWRAP($EXISTS, '$EXISTS')
 }
 
