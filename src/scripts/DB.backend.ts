@@ -29,11 +29,12 @@ export async function $LAST_BUILD(args: string) {
 }
 
 export async function $SHOW_LAST(args: string) {
+  // console.log(args)
   global.muteMessages = true;
   const db = await TnpDB.Instance(config.dbLocation);
   const last = db.lastCommandFrom(process.cwd(), true);
   global.muteMessages = false;
-  Helpers.log(last.command);
+  process.stdout.write(last.command);
   // console.log('last commadn to run', last)
   // await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd(), true));
   process.exit(0);
