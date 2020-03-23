@@ -28,10 +28,6 @@ export class ProcessController extends BaseController {
     this.crud.setBulk([], ProcessInstance);
   }
 
-  resetProcessess() {
-    this.crud.setBulk([], ProcessInstance);
-  }
-
   async update() {
     // const ps: PsListInfo[] = await psList();
     // const all = this.crud.getAll<ProcessInstance>(ProcessInstance);

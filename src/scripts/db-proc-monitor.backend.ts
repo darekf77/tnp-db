@@ -1,5 +1,5 @@
 import { Helpers } from 'tnp-helpers';
-import { TnpDB } from '../wrapper-db';
+import { TnpDB } from '../wrapper-db.backend';
 import { CLASS } from 'typescript-class-helpers';
 
 export class DBProcMonitor {
@@ -14,7 +14,7 @@ export class DBProcMonitor {
 
   private repeat(n = 0) {
     const Project = CLASS.getBy('Project') as any;
-    this.db.transaction.updateProcesses();
+    this.db.updateProcesses();
     const builds = this.db.getBuilds();
     Helpers.clearConsole();
     Helpers.log(`\n===== Check counter: ${n}, projects: ${Project.projects.length} === `)

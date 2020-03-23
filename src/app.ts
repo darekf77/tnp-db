@@ -21,7 +21,7 @@ if (!global['ENV']) {
 }
 global['ENV']['config'] = config;
 
-import { TnpDB } from './wrapper-db';
+import { TnpDB } from './wrapper-db.backend';
 
 import { DB } from './index';
 

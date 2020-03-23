@@ -45,9 +45,9 @@ const $DB = async (args: string) => {
 
   if (args.trim() === 'reinit') {
     await db.init()
-    db.transaction.setCommand(`${config.frameworkName} db reinit`)
+    db.setCommand(`${config.frameworkName} db reinit`)
   } else {
-    db.transaction.setCommand(`${config.frameworkName} db`)
+    db.setCommand(`${config.frameworkName} db`)
   }
 
   process.exit(0)
