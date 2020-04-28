@@ -292,10 +292,12 @@ export class TnpDB {
     // console.log('current build options', buildOptions)
 
     const existed = await this.__buildsCtrl.getExistedByPid(pid);
-    existed.updateCmdFrom(buildOptions);
-    // console.log(existed);
-    this.crud.set(existed);
-    // process.exit(0)
+    if(existed) {
+      existed.updateCmdFrom(buildOptions);
+      // console.log(existed);
+      this.crud.set(existed);
+      // process.exit(0)
+    }
 
   }
   //#endregion
