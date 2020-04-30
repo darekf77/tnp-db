@@ -82,8 +82,7 @@ export class ProjectsController extends BaseController {
       })
       .filter(f => !!f)
       .filter(f => {
-        // console.log(`Type for ${f.name} === ${f.type}`)
-        return f.type !== 'unknow-npm-project'
+        return f.typeIsNot('unknow-npm-project')
       })
       .forEach(project => {
         this.addIfNotExists(ProjectInstance.from(project))
