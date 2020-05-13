@@ -200,12 +200,14 @@ export class TnpDB {
     return this.crud.getAll(ProcessInstance);
   }
 
+  resetProcessess() {
+    this.crud.setBulk([], ProcessInstance);
+  }
 
   public async updateProcesses() {
     Helpers.log(`[db] Updating buillds...`)
     await this.__buildsCtrl.update();
   }
-
 
   //#endregion
 
