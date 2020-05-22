@@ -57,19 +57,38 @@ export class TnpDB {
   private __commandsCtrl: CommandsController;
   private __processCtrl: ProcessController;
   private _adapter;
-  private db;
+  private db: any;
+
+  public rawGet<T = any>(keyOrEntityName: string) {
+    if (!this.db) {
+      return;
+    }
+    this.db.read();
+    return this.db.get(keyOrEntityName).value() as T;
+  }
+  public rawSet<T = any>(keyOrEntityName: string, json: T) {
+    if (!this.db) {
+      return;
+    }
+    this.db.set(keyOrEntityName, json).write();
+  }
+
   private crud: DbCrud;
   //#endregion
 
   //#region constructor/init
-  constructor(private location: string) { }
+  constructor(private location: string) {
+    this.db
+  }
   public async init(recreate = true) {
     // Helpers.log('[db] recreate db instance');
     if (recreate) {
       Helpers.writeFile(this.location, '');
     }
     this._adapter = new FileSync(this.location);
-    this.db = low(this._adapter)
+    const result = low(this._adapter);
+    this.db = result as any;
+
     this.crud = new DbCrud(this.db);
     // Helpers.log('[db] Writed default values');
     this.__projectsCtrl = new ProjectsController(this.crud);
@@ -294,7 +313,7 @@ export class TnpDB {
     // console.log('current build options', buildOptions)
 
     const existed = await this.__buildsCtrl.getExistedByPid(pid);
-    if(existed) {
+    if (existed) {
       existed.updateCmdFrom(buildOptions);
       // console.log(existed);
       this.crud.set(existed);

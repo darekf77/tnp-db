@@ -25,6 +25,7 @@ export class PortsController extends BaseController {
     const defaultPorts: PortInstance[] = [
 
       new PortInstance([80, 443], new Models.system.SystemService('http(s) related')),
+      new PortInstance(6000, new Models.system.SystemService('generaly not working... taken by someone else')),
       new PortInstance(Models.other.Range.from(4000).to(6000))
 
     ]
