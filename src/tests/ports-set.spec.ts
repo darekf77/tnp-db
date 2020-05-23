@@ -2,14 +2,10 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { describe } from 'mocha'
 import { expect, use } from 'chai'
-import { Helpers } from 'tnp-helpers';
 import { Project } from 'tnp-bundle';
 import { Models } from 'tnp-models';
 import { PortInstance } from '../entites/port-instance';
 import { PortsSet } from '../controllers/ports-set';
-
-
-
 
 
 describe('Ports set tests', () => {
@@ -87,7 +83,7 @@ describe('Ports set tests', () => {
       new PortInstance(Models.other.Range.from(7000).to(7005))
     ])
 
-    expect(s.reserveFreePortsFor(tnp)).to.be.true;
+    expect(await s.reserveFreePortsFor(tnp)).to.be.true;
 
     // console.log(TnpDB.prepareToSave.ports(s._ports))
 
@@ -101,7 +97,7 @@ describe('Ports set tests', () => {
       new PortInstance(Models.other.Range.from(7000).to(7010))
     ])
 
-    expect(s.reserveFreePortsFor(baseline)).to.be.true;
+    expect(await s.reserveFreePortsFor(baseline)).to.be.true;
     expect(s.numOfTakenPortsAvailable).to.be.eq(baseline.children.length + 1)
 
     // console.log(TnpDB.prepareToSave.ports(s._ports))
@@ -114,7 +110,7 @@ describe('Ports set tests', () => {
       new PortInstance(Models.other.Range.from(7000).to(baseline.children.length))
     ])
 
-    expect(s.reserveFreePortsFor(baseline)).to.be.false;
+    expect(await s.reserveFreePortsFor(baseline)).to.be.false;
 
   });
 

@@ -9,21 +9,21 @@ export class DBProcMonitor {
   }
 
   async start() {
-    this.repeat();
+    await this.repeat();
   }
 
-  private repeat(n = 0) {
+  private async repeat(n = 0) {
     const Project = CLASS.getBy('Project') as any;
-    this.db.updateProcesses();
-    const builds = this.db.getBuilds();
+    await this.db.updateProcesses();
+    const builds = await this.db.getBuilds();
     Helpers.clearConsole();
     Helpers.log(`\n===== Check counter: ${n}, projects: ${Project.projects.length} === `)
     builds.forEach(b => {
       Helpers.log(`${b.pid}\t${b.location}\t${b.cmd}\t${b.buildOptions && b.buildOptions.watch}\n`);
     });
     // console.log('waiting')
-    setTimeout(() => {
-      this.repeat(n + 1);
+    setTimeout(async () => {
+      await this.repeat(n + 1);
     }, 1000)
   }
 

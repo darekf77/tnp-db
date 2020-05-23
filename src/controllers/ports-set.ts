@@ -131,15 +131,15 @@ export class PortsSet {
     return allInstaces;
   }
 
-  reserveFreePortsFor(projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
+  async reserveFreePortsFor(projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
     howManyPorts: number = 1) {
-    return this._reserveFreePortsFor(projectLocationOrSystemService, howManyPorts, this.ports);
+    return await this._reserveFreePortsFor(projectLocationOrSystemService, howManyPorts, this.ports);
   }
 
-  private _reserveFreePortsFor(
+  private async _reserveFreePortsFor(
     projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
     howManyPorts: number = 1, ports: PortInstance[],
-    allInstaces?: PortInstance[]): boolean {
+    allInstaces?: PortInstance[]): Promise<boolean> {
 
     let saveInstancesToDb = false;
 
@@ -183,9 +183,16 @@ export class PortsSet {
     // console.log('allInstaces', TnpDB.prepareToSave.ports(allInstaces))
 
     if (isProject && project.children.length > 0) {
-      const childrenSuccessReserverPorts = project.children.filter(child => {
-        return this._reserveFreePortsFor(child, undefined, ports, allInstaces)
-      }).length === project.children.length;
+      const childrenSuccessReserverPortsArr = [];
+      const children =  project.children;
+      for (let index = 0; index < children.length; index++) {
+        const child = children[index];
+        if(await this._reserveFreePortsFor(child, undefined, ports, allInstaces)) {
+          childrenSuccessReserverPortsArr.push(child);
+        }
+      }
+      const childrenSuccessReserverPorts = (childrenSuccessReserverPortsArr.length === children.length);
+
       if (!childrenSuccessReserverPorts) {
         return false;
       }
@@ -198,7 +205,7 @@ export class PortsSet {
       // console.log('ports', TnpDB.prepareToSave.ports(ports))
 
       this.ports = ports;
-      this.saveCallback(this.ports)
+      await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
     }
     return true;
   }
@@ -207,19 +214,19 @@ export class PortsSet {
     return this.ports.filter(f => _.isEqual(f.reservedFor, projectLocationOrSevice));
   }
 
-  update(port: PortInstance): boolean {
+  async update(port: PortInstance): Promise<boolean> {
     const ins = this.ports.find(f => f.isEqual(port));
     if (!ins) {
       return false;
     }
     _.merge(ins, port);
-    this.saveCallback(this.ports)
+    await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
     return true;
   }
 
-  remove(port: PortInstance) {
+  async remove(port: PortInstance) {
     this.ports = this.ports.filter(f => !f.isEqual(port));
-    this.saveCallback(this.ports)
+    await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
   }
 
   add(port: PortInstance): boolean {

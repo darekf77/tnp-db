@@ -1,3 +1,5 @@
+export * from './daemon';
+export * from './build-options';
 //#region @backend
 export * from './wrapper-db.backend';
 import * as _DB from './scripts/DB.backend';

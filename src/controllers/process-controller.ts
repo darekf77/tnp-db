@@ -47,9 +47,9 @@ export class ProcessController extends BaseController {
   }
 
 
-  findProcessByInfo(metaInfo: ProcessMetaInfo) {
+  async findProcessByInfo(metaInfo: ProcessMetaInfo) {
     const { className, entityId, entityProperty } = metaInfo;
-    const proceses = this.crud.getAll<ProcessInstance>(ProcessInstance);
+    const proceses = await this.crud.getAll<ProcessInstance>(ProcessInstance);
     let existed: ProcessInstance;
     existed = proceses.find((p) => {
       return (
@@ -62,13 +62,13 @@ export class ProcessController extends BaseController {
     return existed;
   }
 
-  boundProcess(metaInfo: ProcessMetaInfo, relation1TO1entityId?: number): ProcessInstance {
+  async boundProcess(metaInfo: ProcessMetaInfo, relation1TO1entityId?: number): Promise<ProcessInstance> {
     let existed: ProcessInstance;
     let saveToDB = true;
 
     if (!existed) {
-      existed = this.findProcessByInfo(metaInfo)
-      if(existed && !_.isNumber(relation1TO1entityId)) {
+      existed = await this.findProcessByInfo(metaInfo)
+      if (existed && !_.isNumber(relation1TO1entityId)) {
         saveToDB = false;
       }
     }
@@ -79,7 +79,7 @@ export class ProcessController extends BaseController {
     }
 
     existed.setInfo(metaInfo);
-    if(_.isNumber(relation1TO1entityId)) {
+    if (_.isNumber(relation1TO1entityId)) {
       existed.relation1TO1entityId = relation1TO1entityId;
     }
 
@@ -88,8 +88,8 @@ export class ProcessController extends BaseController {
     // existed.cmd = metaInfo.cmd;
     // existed.pid = metaInfo.pid;
 
-    if(saveToDB) {
-      this.crud.set(existed)
+    if (saveToDB) {
+      await this.crud.set(existed)
     }
     return existed;
   }

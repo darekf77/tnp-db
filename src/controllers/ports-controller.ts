@@ -15,8 +15,12 @@ export class PortsController extends BaseController {
 
 
   public get manager() {
-    return new PortsSet(this.crud.getAll(PortInstance), (newPorts) => {
-      this.crud.setBulk(newPorts, PortInstance);
+    return new Promise(async (resolve, reject) => {
+      const instances = await this.crud.getAll(PortInstance);
+      const result = new PortsSet(instances as any, async (newPorts) => {
+        await this.crud.setBulk(newPorts, PortInstance);
+      });
+      resolve(result);
     });
   }
 
@@ -30,7 +34,7 @@ export class PortsController extends BaseController {
 
     ]
 
-    this.crud.setBulk(defaultPorts, PortInstance);
+    await this.crud.setBulk(defaultPorts, PortInstance);
 
   }
 

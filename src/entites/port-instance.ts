@@ -1,7 +1,6 @@
 //#region @backend
 import * as _ from 'lodash';
 import { Models } from 'tnp-models';
-import { Helpers } from 'tnp-helpers';
 import { DBBaseEntity } from './base-entity';
 import { CLASS } from 'typescript-class-helpers';
 

@@ -6,8 +6,10 @@ import { DbCrud } from '../db-crud';
 import { BaseController } from './base-controlller';
 import { ProjectInstance } from '../entites';
 declare const global: any;
-declare const ENV: any;
-const config = ENV.config as any;
+if (!global['ENV']) {
+  global['ENV'] = {};
+}
+const config = global['ENV'].config as any;
 import { CLASS } from 'typescript-class-helpers';
 
 
@@ -30,7 +32,7 @@ export class ProjectsController extends BaseController {
   }
 
 
-  addIfNotExists(projectInstance: ProjectInstance): boolean {
+  async addIfNotExists(projectInstance: ProjectInstance): Promise<boolean> {
 
     if (!projectInstance) {
       return;

@@ -7,7 +7,6 @@ import { PortInstance } from '../entites/port-instance';
 describe('Ports type spec', () => {
 
 
-
   it('should compare correcly simple number types', async function () {
 
     (() => {

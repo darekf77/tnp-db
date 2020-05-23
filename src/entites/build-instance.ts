@@ -17,15 +17,23 @@ export type IBuildInstance = {
 
 @CLASS.NAME('BuildInstance')
 export class BuildInstance extends DBBaseEntity implements IBuildInstance {
-
+  data?: IBuildInstance;
 
   constructor(data?: IBuildInstance) {
     super()
     if (!data) {
       data = {} as any;
     }
+    this.data = data;
+  }
+
+  async prepare() {
+    const data = this.data;
     const BuildOptions = CLASS.getBy('BuildOptions') as any;
     const Project = CLASS.getBy('Project') as any;
+
+    // console.log('PROJECT', !!Project)
+    // console.log('BuildOptions', !!BuildOptions)
 
     this.pid = data.pid;
     this.ppid = data.ppid;
@@ -33,17 +41,16 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
 
     this.cmd = CommandInstance.fixedCommand(data.cmd);
     if (this.cmd) {
-      this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
+      this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
     } else {
       if (_.isObject(data.buildOptions)) {
         this.cmd = BuildOptions.exportToCMD(data.buildOptions);
-        this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
+        this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
       } else {
         this.cmd = '';
-        this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
+        this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
       }
     }
-
   }
 
   get isTnpProjectBuild() {
@@ -54,11 +61,11 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     return res;
   }
 
-  updateCmdFrom(buildOptions: Models.dev.IBuildOptions) {
+  async updateCmdFrom(buildOptions: Models.dev.IBuildOptions) {
     const BuildOptions = CLASS.getBy('BuildOptions') as any;
     const Project = CLASS.getBy('Project') as any;
     this.cmd = BuildOptions.exportToCMD(buildOptions);
-    this._buildOptions = BuildOptions.from(this.cmd, Project.From(this.location));
+    this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
   }
 
   private _buildOptions: Models.dev.IBuildOptions;

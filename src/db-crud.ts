@@ -1,6 +1,6 @@
 //#region @backend
 import * as _ from 'lodash';
-
+import * as fse from 'fs-extra';
 import { CLASS } from 'typescript-class-helpers'
 
 import { DBBaseEntity } from './entites/base-entity';
@@ -20,12 +20,12 @@ export class DbCrud {
 
   }
 
-  clearDBandReinit(defaultValues: Object) {
+  async clearDBandReinit(defaultValues: Object) {
     this.db.defaults(defaultValues)
       .write()
   }
 
-  getAll<T extends DBBaseEntity>(classFN: Function): T[] {
+  async getAll<T extends DBBaseEntity>(classFN: Function): Promise<T[]> {
     const entityName: EntityNames = this.getEntityNameByClassFN(classFN);
     // console.log(`${CLASS.getName(classFN)} entity name from object`, entityName);
     // process.exit(0)
@@ -33,49 +33,56 @@ export class DbCrud {
     const res = (this.db.get(entityName).value() as T[]);
     // console.log(`${CLASS.getName(classFN)}, entity ${entityName}, res`, res)
     if (_.isArray(res)) {
-      return res.map(v => this.afterRetrive(v, entityName)).filter(f => !!f) as any;
+      for (let index = 0; index < res.length; index++) {
+        const v = res[index];
+        res[index] = (await this.afterRetrive(v, entityName)) as any;
+      }
+      return res.filter(f => !!f) as any;
     }
     return [];
   }
 
-  addIfNotExist(entity: DBBaseEntity): boolean {
+  async addIfNotExist(entity: DBBaseEntity): Promise<boolean> {
     const classFN = CLASS.getFromObject(entity)
     // console.log(`[addIfNotExist] add if not exist entity: ${CLASS.getNameFromObject(entity)}`)
-    const all = this.getAll(CLASS.getFromObject(entity))
+    const all = await this.getAll(CLASS.getFromObject(entity))
     const indexFounded = all.findIndex(f => f.isEqual(entity))
     if (indexFounded === -1) {
+
       all.push(entity)
-      this.setBulk(all, classFN);
+      // console.log(`NOT FOUND - ADD : all.length ${all.length}`,all);
+      await this.setBulk(all, classFN);
       return true;
     }
+    // console.log(`FOUNDED ????? - NOT ADD`);
     return false;
   }
 
-  remove(entity: DBBaseEntity): boolean {
+  async remove(entity: DBBaseEntity): Promise<boolean> {
     const classFN = CLASS.getFromObject(entity)
-    const all = this.getAll(CLASS.getFromObject(entity))
+    const all = await this.getAll(CLASS.getFromObject(entity))
     const filtered = all.filter(f => !f.isEqual(entity))
     if (filtered.length === all.length) {
       return false;
     }
-    this.setBulk(filtered, classFN);
+    await this.setBulk(filtered, classFN);
     return true;
   }
 
-  set(entity: DBBaseEntity) {
+  async set(entity: DBBaseEntity) {
     const classFN = CLASS.getFromObject(entity)
 
-    const all = this.getAll(CLASS.getFromObject(entity))
+    const all = await this.getAll(CLASS.getFromObject(entity))
     const existed = all.find(f => f.isEqual(entity))
     if (existed) {
       _.merge(existed, entity)
     } else {
       all.push(entity)
     }
-    this.setBulk(all, classFN);
+    await this.setBulk(all, classFN);
   }
 
-  setBulk(entites: DBBaseEntity[], classFN: Function): boolean {
+  async setBulk(entites: DBBaseEntity[], classFN: Function): Promise<boolean> {
     if (!_.isArray(entites)) {
       Helpers.error(`[db-crud] setBuild - this is not array of entities`)
     }
@@ -88,7 +95,7 @@ export class DbCrud {
     const entityName = this.getEntityNameByClassName(className)
     const json = entites.map(c => this.preprareEntityForSave(c));
     // console.log(`[setBulk] set json for entity ${entityName}`, json)
-    this.db.set(entityName, json).write()
+    await this.db.set(entityName, json).write()
     return true;
   }
 
@@ -100,11 +107,12 @@ export class DbCrud {
     return className === 'Project' ? 'projects' : DBBaseEntity.entityNameFromClassName(className) as EntityNames;
   }
 
-  private afterRetrive<T = any>(value: any, entityName: EntityNames): DBBaseEntity {
+  private async afterRetrive<T = any>(value: any, entityName: EntityNames): Promise<DBBaseEntity> {
     const Project = CLASS.getBy('Project') as any;
     if (entityName === 'builds') {
       const v = value as BuildInstance;
       const ins: BuildInstance = new BuildInstance(v);
+      await ins.prepare()
       return ins as any;
     }
     if (entityName === 'commands') {
@@ -131,7 +139,8 @@ export class DbCrud {
 
     if (entityName === 'projects') {
       const p = new ProjectInstance(value);
-      return p.project ? p : void 0;
+      return p;
+      // return fse.existsSync(p.locationOfProject) ? p : void 0;
     }
     if (entityName === 'processes') {
       return _.merge(new ProcessInstance(), value) as PortInstance;

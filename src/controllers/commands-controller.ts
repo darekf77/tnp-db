@@ -21,8 +21,8 @@ export class CommandsController extends BaseController {
   }
 
 
-  lastCommandFrom(location: string, buildCommand = false): CommandInstance {
-    const commands = this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
+  async lastCommandFrom(location: string, buildCommand = false): Promise<CommandInstance> {
+    const commands = await this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
     let cmd;
     if (buildCommand) {
       cmd = commands.find(c => {
@@ -52,7 +52,7 @@ export class CommandsController extends BaseController {
 
   }
   async runLastCommandIn(location: string) {
-    const commands = this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
+    const commands = await this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
     const cmd = commands.find(c => c.location === location)
     if (cmd) {
       await global.start(cmd.command.split(' '), void 0);
@@ -61,8 +61,8 @@ export class CommandsController extends BaseController {
     }
   }
 
-  updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
-    const cmd = this.lastCommandFrom(location, true);
+  async updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
+    const cmd = await this.lastCommandFrom(location, true);
     if (cmd) {
       const clients = _.isArray(buildOptions.forClient) ? (buildOptions.forClient as any[])
         .map((c: Models.other.IProject) => {
@@ -75,7 +75,7 @@ export class CommandsController extends BaseController {
         }).join(' ') : '';
 
       cmd.command = cmd.command + ' ' + clients + ' ' + copyto;
-      this.crud.set(cmd)
+      await this.crud.set(cmd)
     }
     // else {
     //   Helpers.warn(`Cannot update unexisted last commadn in location: ${location}`)

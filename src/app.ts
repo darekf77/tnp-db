@@ -8,7 +8,7 @@ import { Helpers } from 'tnp-helpers'
 
 const dbPath = path.join(process.cwd(), 'tmp-db.json');
 
-const config = {
+export const config = {
   dbLocation: dbPath,
   pathes: {
     tmp_transaction_pid_txt: path.join(process.cwd(), 'tmp-transaciton-pid.txt')
@@ -46,7 +46,7 @@ export default async function () {
   }
   if (!fromParam) {
 
-    const projects = db.getProjects();
+    const projects = await db.getProjects();
     // console.log(projects.map(p => path.basename(p.project.location)))
     // console.log('done!')
   }

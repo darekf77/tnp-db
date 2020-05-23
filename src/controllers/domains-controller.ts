@@ -18,7 +18,7 @@ export class DomainsController extends BaseController {
     const domains: DomainInstance[] = [];
 
     const Project = CLASS.getBy('Project');
-    this.crud.getAll<ProjectInstance>(Project).forEach((p) => {
+    (await this.crud.getAll<ProjectInstance>(Project)).forEach((p) => {
       const project: Models.other.IProject = p.project;
       if (!project.isWorkspaceChildProject && project.env &&
         project.env.config && project.env.config.domain) {
@@ -38,7 +38,7 @@ export class DomainsController extends BaseController {
 
     })
 
-    this.crud.setBulk(domains, DomainInstance);
+    await this.crud.setBulk(domains, DomainInstance);
   }
 
   private addDomain(address: string, environment: Models.env.EnvironmentName,

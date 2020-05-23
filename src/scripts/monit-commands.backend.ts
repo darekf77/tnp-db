@@ -15,8 +15,8 @@ export class DBMonitCommands {
   }
 
   counter = 0;
-  private repeat(n = 0) {
-    const cmds = this.db.getCommands();
+  private async repeat(n = 0) {
+    const cmds = await this.db.getCommands();
     Helpers.clearConsole();
     Helpers.info(`COMMANDS ${++this.counter} :`)
     console.table(cmds)
@@ -24,8 +24,8 @@ export class DBMonitCommands {
     //   Helpers.log(`\t${p.location}\t${p.command}\t${p.shortCommandForLastCommand}\n`);
     // });
 
-    setTimeout(() => {
-      this.repeat(n + 1)
+    setTimeout(async () => {
+      await this.repeat(n + 1)
     }, 1000);
   }
 

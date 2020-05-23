@@ -28,8 +28,8 @@ export class DBMonitTop {
         });
 
 
-      setTimeout(() => {
-        this.repeat(n + 1)
+      setTimeout(async () => {
+        await this.repeat(n + 1)
       }, 1000)
     })
 

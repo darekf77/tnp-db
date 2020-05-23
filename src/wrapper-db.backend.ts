@@ -20,8 +20,10 @@ import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
 import { ProcessBoundAction } from './models';
 declare const global: any;
-declare const ENV: any;
-const config = ENV.config as any;
+if (!global['ENV']) {
+  global['ENV'] = {};
+}
+const config = global['ENV'].config as any;
 const buildOptionsParams = ['watch', 'appBuild', 'prod'];
 export { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance } from './entites';
 //#endregion
@@ -59,18 +61,18 @@ export class TnpDB {
   private _adapter;
   private db: any;
 
-  public rawGet<T = any>(keyOrEntityName: string) {
+  public async rawGet<T = any>(keyOrEntityName: string) {
     if (!this.db) {
       return;
     }
-    this.db.read();
+    // this.db.read();
     return this.db.get(keyOrEntityName).value() as T;
   }
-  public rawSet<T = any>(keyOrEntityName: string, json: T) {
+  public async rawSet<T = any>(keyOrEntityName: string, json: T) {
     if (!this.db) {
       return;
     }
-    this.db.set(keyOrEntityName, json).write();
+    // this.db.set(keyOrEntityName, json).write();
   }
 
   private crud: DbCrud;
@@ -113,7 +115,7 @@ export class TnpDB {
   //#region reinint db
   public async reinitDB() {
     Helpers.log(`[db][reinit] writing default values`);
-    this.crud.clearDBandReinit({
+    await this.crud.clearDBandReinit({
       projects: [],
       domains: [],
       ports: [],
@@ -142,14 +144,14 @@ export class TnpDB {
     buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
     // console.log('current build options', buildOptions)
 
-    this.__projectsCtrl.addIfNotExists(ProjectInstance.from(currentProject));
+    await this.__projectsCtrl.addIfNotExists(ProjectInstance.from(currentProject));
 
-    const killAndRemove = (existed: BuildInstance) => {
+    const killAndRemove = async (existed: BuildInstance) => {
       try {
         Helpers.killProcess(existed.pid)
       } catch (error) {
       }
-      this.crud.remove(existed)
+      await this.crud.remove(existed)
     };
 
     // TODO fix it when process exists with pid but is it is not process of TNP!
@@ -162,7 +164,7 @@ export class TnpDB {
       if (existed && currentProject.isGenerated === existed.project.isGenerated) {
         if (global.tnpNonInteractive) {
           Helpers.warn('automatic kill of active build instance in static build mode');
-          killAndRemove(existed)
+          await killAndRemove(existed)
           continue;
         } else if (existed.pid !== process.pid) {
           Helpers.log(`
@@ -175,14 +177,14 @@ export class TnpDB {
           There is active process on pid ${existed.pid}, do you wanna kill this process ?
          build options: ${existed.buildOptions.toString()}`)
           if (confirm) {
-            killAndRemove(existed)
+            await killAndRemove(existed)
             continue;
           } else {
             process.exit(0);
           }
         }
       } else {
-        this.__buildsCtrl.add(currentProject, buildOptions, pid, ppid);
+        await this.__buildsCtrl.add(currentProject, buildOptions, pid, ppid);
       }
       break;
     }
@@ -210,17 +212,17 @@ export class TnpDB {
 
   private boundProcess(metaInfo: ProcessMetaInfo, relation1TO1entityId?: number): Promise<ProcessInstance> {
     return new Promise<ProcessInstance>(async (resolve) => {
-      let proc = this.__processCtrl.boundProcess(metaInfo, relation1TO1entityId)
+      let proc = await this.__processCtrl.boundProcess(metaInfo, relation1TO1entityId)
       resolve(proc);
     });
   }
 
-  public getProceses(): ProcessInstance[] {
-    return this.crud.getAll(ProcessInstance);
+  public async getProceses(): Promise<ProcessInstance[]> {
+    return await this.crud.getAll(ProcessInstance);
   }
 
-  resetProcessess() {
-    this.crud.setBulk([], ProcessInstance);
+  async resetProcessess() {
+    await this.crud.setBulk([], ProcessInstance);
   }
 
   public async updateProcesses() {
@@ -235,12 +237,12 @@ export class TnpDB {
     await this.__commandsCtrl.runCommand(cmd);
   }
 
-  public getCommands(): CommandInstance[] {
-    return this.crud.getAll(CommandInstance);
+  public async  getCommands(): Promise<CommandInstance[]> {
+    return await this.crud.getAll(CommandInstance);
   }
 
-  public lastCommandFrom(location: string, buildCommand = false) {
-    return this.__commandsCtrl.lastCommandFrom(location, buildCommand)
+  public async lastCommandFrom(location: string, buildCommand = false) {
+    return await this.__commandsCtrl.lastCommandFrom(location, buildCommand)
   }
 
   public async setCommand(command: string) {
@@ -254,15 +256,15 @@ export class TnpDB {
     const cb = new CommandInstance(command, location);
     if (_.isString(cb.command) && cb.command.trim().startsWith(`${config.frameworkName} b`)) {
       cb.isBuildCommand = true;
-      this.crud.set(cb);
+      await this.crud.set(cb);
     } else {
       const c = new CommandInstance(command, location);
-      this.crud.set(c);
+      await this.crud.set(c);
     }
   }
 
   public async updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
-    this.__commandsCtrl.updateCommandBuildOptions(location, buildOptions);
+    await this.__commandsCtrl.updateCommandBuildOptions(location, buildOptions);
   }
   //#endregion
 
@@ -276,7 +278,7 @@ export class TnpDB {
     pid?: number;
     ppid?: number;
   }) {
-    const buildsFromDB = this.getBuilds();
+    const buildsFromDB = await this.getBuilds();
     if (_.isNil(options)) {
       return buildsFromDB;
     }
@@ -297,16 +299,16 @@ export class TnpDB {
     });
   }
 
-  public distBuildFoundedFor(project: Models.other.IProject) {
-    return this.__buildsCtrl.distBuildFoundedFor(project)
+  public async distBuildFoundedFor(project: Models.other.IProject) {
+    return await this.__buildsCtrl.distBuildFoundedFor(project)
   }
 
-  public appBuildFoundedFor(project: Models.other.IProject) {
-    return this.__buildsCtrl.appBuildFoundedFor(project)
+  public async appBuildFoundedFor(project: Models.other.IProject) {
+    return await this.__buildsCtrl.appBuildFoundedFor(project)
   }
 
-  public getBuilds(): BuildInstance[] {
-    return this.crud.getAll(BuildInstance);
+  public async getBuilds(): Promise<BuildInstance[]> {
+    return await this.crud.getAll(BuildInstance);
   }
 
   public async updateBuildOptions(buildOptions: Models.dev.IBuildOptions, pid: number) {
@@ -314,9 +316,9 @@ export class TnpDB {
 
     const existed = await this.__buildsCtrl.getExistedByPid(pid);
     if (existed) {
-      existed.updateCmdFrom(buildOptions);
+      await existed.updateCmdFrom(buildOptions);
       // console.log(existed);
-      this.crud.set(existed);
+      await this.crud.set(existed);
       // process.exit(0)
     }
 
@@ -324,11 +326,11 @@ export class TnpDB {
   //#endregion
 
   //#region projects
-  public getProjects(): ProjectInstance[] {
-    return this.crud.getAll(ProjectInstance)
+  public async getProjects(): Promise<ProjectInstance[]> {
+    return await this.crud.getAll(ProjectInstance)
   }
-  public addProjectIfNotExist(project: Models.other.IProject) {
-    this.__projectsCtrl.addIfNotExists(ProjectInstance.from(project));
+  public async addProjectIfNotExist(project: Models.other.IProject) {
+    await this.__projectsCtrl.addIfNotExists(ProjectInstance.from(project));
   }
   public async killInstancesFrom(projects: Models.other.IProject[]) {
     await this.__buildsCtrl.update()

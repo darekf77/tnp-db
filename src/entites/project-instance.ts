@@ -1,4 +1,5 @@
 //#region @backend
+import * as _ from 'lodash';
 import { DBBaseEntity } from './base-entity';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
@@ -19,7 +20,9 @@ export class ProjectInstance extends DBBaseEntity {
   }
 
   isEqual(anotherInstace: ProjectInstance): boolean {
-    return this.locationOfProject === anotherInstace.locationOfProject;
+      return _.isString(this.locationOfProject)
+      && _.isString(anotherInstace.locationOfProject)
+      && (this.locationOfProject === anotherInstace.locationOfProject)
   }
 
   hasEqualMetainfo(anotherInstace: ProjectInstance) {

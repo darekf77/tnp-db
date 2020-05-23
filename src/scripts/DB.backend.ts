@@ -8,12 +8,14 @@ import { DBProcMonitor } from './db-proc-monitor.backend';
 import { DBMonitTop } from './monit-top.backend';
 import { DBMonitCommands } from './monit-commands.backend';
 declare const global: any;
-declare const ENV: any;
-const config = ENV.config as any;
+if (!global['ENV']) {
+  global['ENV'] = {};
+}
+const config = global['ENV'].config as any;
 
 export async function $LAST(args: string) {
   const db = await TnpDB.Instance(config.dbLocation);
-  const last = db.lastCommandFrom(process.cwd(), false);
+  const last = await db.lastCommandFrom(process.cwd(), false);
   // console.log('last commadn to run', last)
   await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd()));
   // process.exit(0)
@@ -22,7 +24,7 @@ export async function $LAST(args: string) {
 export async function $LAST_BUILD(args: string) {
 
   const db = await TnpDB.Instance(config.dbLocation);
-  const last = db.lastCommandFrom(process.cwd(), true);
+  const last = await db.lastCommandFrom(process.cwd(), true);
   // console.log('last commadn to run', last)
   await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd(), true));
   // process.exit(0)
@@ -32,7 +34,7 @@ export async function $SHOW_LAST(args: string) {
   // console.log(args)
   global.muteMessages = true;
   const db = await TnpDB.Instance(config.dbLocation);
-  const last = db.lastCommandFrom(process.cwd(), true);
+  const last = await db.lastCommandFrom(process.cwd(), true);
   global.muteMessages = false;
   process.stdout.write(last.command);
   // console.log('last commadn to run', last)
@@ -45,9 +47,9 @@ const $DB = async (args: string) => {
 
   if (args.trim() === 'reinit') {
     await db.init()
-    db.setCommand(`${config.frameworkName} db reinit`)
+    await db.setCommand(`${config.frameworkName} db reinit`)
   } else {
-    db.setCommand(`${config.frameworkName} db`)
+    await db.setCommand(`${config.frameworkName} db`)
   }
 
   process.exit(0)
@@ -56,13 +58,13 @@ const $DB = async (args: string) => {
 
 async function $MONIT_TOP() {
   const db = await TnpDB.Instance(config.dbLocation);
-  (new DBMonitTop(db)).start();
+  await (new DBMonitTop(db)).start();
 
 }
 
 async function $MONIT_COMMANDS() {
   const db = await TnpDB.Instance(config.dbLocation);
-  (new DBMonitCommands(db)).start();
+  await (new DBMonitCommands(db)).start();
 
 }
 
@@ -77,7 +79,7 @@ async function $EXISTS(args: string) {
 
 async function $PROC_MONITOR() {
   const db = await TnpDB.Instance(config.dbLocation);
-  (new DBProcMonitor(db)).start();
+  await (new DBProcMonitor(db)).start();
 
 }
 
