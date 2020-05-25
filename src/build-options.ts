@@ -2,6 +2,7 @@
 import chalk from 'chalk';
 import * as path from 'path';
 import { Helpers, Project } from 'tnp-helpers';
+import { TnpDB } from './wrapper-db.backend';
 //#endregion
 
 import * as _ from 'lodash';
@@ -11,7 +12,6 @@ if (!global['ENV']) {
 }
 const config = global['ENV'].config as any;
 import { CLASS } from 'typescript-class-helpers';
-import { TnpDB } from './wrapper-db.backend';
 // @ts-ignore
 // import type { Project as ProjectType } from '../../tnp/src/project/abstract/project/project';
 
