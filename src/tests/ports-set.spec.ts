@@ -5,7 +5,7 @@ import { expect, use } from 'chai'
 import { Project } from 'tnp-bundle';
 import { Models } from 'tnp-models';
 import { PortInstance } from '../entites/port-instance';
-import { PortsSet } from '../controllers/ports-set';
+import { PortsSet } from '../controllers/ports-set.backend';
 
 
 describe('Ports set tests', () => {
@@ -22,10 +22,10 @@ describe('Ports set tests', () => {
       saveCallCounter++;
     })
 
-    s.add(new PortInstance(Models.other.Range.from(3000).to(4000)))
-    s.add(new PortInstance(80, new Models.system.SystemService('http')))
-    s.add(new PortInstance([21, 22], new Models.system.SystemService('System communication')))
-    s.add(new PortInstance(Models.other.Range.from(4100).to(4110), baseline))
+    await s.add(new PortInstance(Models.other.Range.from(3000).to(4000)))
+    await s.add(new PortInstance(80, new Models.system.SystemService('http')))
+    await s.add(new PortInstance([21, 22], new Models.system.SystemService('System communication')))
+    await s.add(new PortInstance(Models.other.Range.from(4100).to(4110), baseline))
 
     expect(saveCallCounter).to.be.eq(4);
 
@@ -39,14 +39,14 @@ describe('Ports set tests', () => {
     ])
 
     expect(s.numOfFreePortsAvailable).to.be.eq(2)
-    s.update(new PortInstance([2000, 2001], new Models.system.SystemService('test')))
+    await s.update(new PortInstance([2000, 2001], new Models.system.SystemService('test')))
     expect(s.numOfFreePortsAvailable).to.be.eq(0)
 
     const twoThousandsFreePors = new PortInstance(Models.other.Range.from(3000).to(5000))
-    s.add(twoThousandsFreePors)
+    await s.add(twoThousandsFreePors)
     expect(s.numOfFreePortsAvailable).to.be.eq(2000)
     expect(s.numOfAllPortsAvailable).to.be.eq(2002)
-    s.remove(twoThousandsFreePors)
+    await s.remove(twoThousandsFreePors)
     expect(s.numOfFreePortsAvailable).to.be.eq(0)
     expect(s.numOfAllPortsAvailable).to.be.eq(2)
 
@@ -85,8 +85,6 @@ describe('Ports set tests', () => {
 
     expect(await s.reserveFreePortsFor(tnp)).to.be.true;
 
-    // console.log(TnpDB.prepareToSave.ports(s._ports))
-
   });
 
   it('should reserve correcly ports for workspace porject', async function () {
@@ -99,8 +97,6 @@ describe('Ports set tests', () => {
 
     expect(await s.reserveFreePortsFor(baseline)).to.be.true;
     expect(s.numOfTakenPortsAvailable).to.be.eq(baseline.children.length + 1)
-
-    // console.log(TnpDB.prepareToSave.ports(s._ports))
 
   });
 

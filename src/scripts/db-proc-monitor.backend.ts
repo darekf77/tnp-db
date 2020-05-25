@@ -1,6 +1,7 @@
 import { Helpers } from 'tnp-helpers';
 import { TnpDB } from '../wrapper-db.backend';
 import { CLASS } from 'typescript-class-helpers';
+import { Project } from 'tnp-helpers';
 
 export class DBProcMonitor {
 
@@ -13,7 +14,7 @@ export class DBProcMonitor {
   }
 
   private async repeat(n = 0) {
-    const Project = CLASS.getBy('Project') as any;
+
     await this.db.updateProcesses();
     const builds = await this.db.getBuilds();
     Helpers.clearConsole();

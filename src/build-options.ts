@@ -1,7 +1,7 @@
 //#region @backend
 import chalk from 'chalk';
 import * as path from 'path';
-import { Helpers } from 'tnp-helpers';
+import { Helpers, Project } from 'tnp-helpers';
 //#endregion
 
 import * as _ from 'lodash';
@@ -12,6 +12,8 @@ if (!global['ENV']) {
 const config = global['ENV'].config as any;
 import { CLASS } from 'typescript-class-helpers';
 import { TnpDB } from './wrapper-db.backend';
+// @ts-ignore
+// import type { Project as ProjectType } from '../../tnp/src/project/abstract/project/project';
 
 @CLASS.NAME('BuildOptions')
 export class BuildOptions implements Models.dev.IBuildOptions {
@@ -156,10 +158,9 @@ export class BuildOptions implements Models.dev.IBuildOptions {
           argPath = (argPath as any).location;
         }
 
-        const Project = CLASS.getBy('Project') as any;
-        let project = Project.nearestTo(argPath as string);
+        let project = Project.nearestTo<Project>(argPath as string);
         if (!project) {
-          const dbProjectsToCheck: Models.other.IProject[] = (await (await TnpDB.Instance(config.dbLocation)).getProjects()).map(p => p.project);
+          const dbProjectsToCheck: Project[] = (await (await TnpDB.Instance(config.dbLocation)).getProjects()).map(p => p.project);
 
           project = dbProjectsToCheck.find(p => p.genericName === argPath);
           if (!project) {

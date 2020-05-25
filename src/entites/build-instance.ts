@@ -6,6 +6,8 @@ import { Helpers } from 'tnp-helpers';
 import chalk from 'chalk';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
+import { Project } from 'tnp-helpers';
+import { BuildOptions } from '../build-options';
 
 export type IBuildInstance = {
   buildOptions?: Models.dev.IBuildOptions;
@@ -29,8 +31,6 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
 
   async prepare() {
     const data = this.data;
-    const BuildOptions = CLASS.getBy('BuildOptions') as any;
-    const Project = CLASS.getBy('Project') as any;
 
     // console.log('PROJECT', !!Project)
     // console.log('BuildOptions', !!BuildOptions)
@@ -62,8 +62,6 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   }
 
   async updateCmdFrom(buildOptions: Models.dev.IBuildOptions) {
-    const BuildOptions = CLASS.getBy('BuildOptions') as any;
-    const Project = CLASS.getBy('Project') as any;
     this.cmd = BuildOptions.exportToCMD(buildOptions);
     this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
   }
@@ -106,7 +104,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   ppid: number;
   location?: string;
   get project() {
-    const Project = CLASS.getBy('Project') as any;
+
     return Project.From(this.location) as Models.other.IProject;
   }
 

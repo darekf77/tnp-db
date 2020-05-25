@@ -3,7 +3,7 @@ import { Helpers } from 'tnp-helpers';
 import { Models } from 'tnp-models';
 import { BaseController } from './base-controlller';
 import { PortInstance } from '../entites/port-instance';
-import { PortsSet } from './ports-set';
+import { PortsSet } from './ports-set.backend';
 import { CLASS } from 'typescript-class-helpers';
 
 @CLASS.NAME('PortsController')
@@ -15,7 +15,7 @@ export class PortsController extends BaseController {
 
 
   public get manager() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<PortsSet>(async (resolve) => {
       const instances = await this.crud.getAll(PortInstance);
       const result = new PortsSet(instances as any, async (newPorts) => {
         await this.crud.setBulk(newPorts, PortInstance);

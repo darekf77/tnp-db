@@ -1,16 +1,54 @@
-//#region @backend
+//#region imports
 import * as _ from 'lodash';
-import { Helpers } from 'tnp-helpers';
+import { Helpers, Project } from 'tnp-helpers';
 import { PortInstance } from '../entites';
 import { Models } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
-
+//#endregion
 
 @CLASS.NAME('PortsSet')
 export class PortsSet {
 
   private ports: PortInstance[];
   private saveCallback: (ports: PortInstance[]) => void;
+
+  //#region private getters
+  public get numOfFreePortsAvailable() {
+    return PortsSet.count.freePorts(this.ports);
+  }
+
+  public get numOfTakenPortsAvailable() {
+    return this.numOfAllPortsAvailable - this.numOfFreePortsAvailable;
+  }
+
+  public get numOfAllPortsAvailable() {
+    return PortsSet.count.allPorts(this.ports);
+  }
+  //#endregion
+
+  //#region count ports
+  public static get count() {
+    return {
+      freePorts(ports: PortInstance[]) {
+        let sum = 0;
+        ports.forEach(ins => {
+          if (ins.isFree) {
+            sum += ins.size;
+          }
+        })
+        return sum;
+      },
+      allPorts(ports: PortInstance[]) {
+        let sum = 0;
+        ports.forEach(ins => {
+          sum += ins.size;
+        })
+        return sum;
+      }
+    }
+  }
+  //#endregion
+
   constructor(ports: PortInstance[], saveCallback?: (ports: PortInstance[]) => void) {
     if (_.isFunction(saveCallback)) {
       this.saveCallback = saveCallback;
@@ -20,14 +58,11 @@ export class PortsSet {
     this.ports = _.cloneDeep(ports).map(c => _.merge(new PortInstance(), c));
   }
 
-  public get _ports() {
-    return _.cloneDeep(this.ports).map(c => _.merge(new PortInstance(), c));
-  }
-
   private reorder() {
     this.ports = _.sortBy(this.ports, (o: PortInstance) => o.sortIndex)
   }
 
+  //#region make set smaller
   private makeSmaller(allInstacesSingle: PortInstance[]) {
     const ports: PortInstance[] = []
 
@@ -56,60 +91,23 @@ export class PortsSet {
     })
     return ports;
   }
+  //#endregion
 
-  public static get count() {
-    return {
-      freePorts(ports: PortInstance[]) {
-        let sum = 0;
-        ports.forEach(ins => {
-          if (ins.isFree) {
-            sum += ins.size;
-          }
-        })
-        return sum;
-      },
-      allPorts(ports: PortInstance[]) {
-        let sum = 0;
-        ports.forEach(ins => {
-          sum += ins.size;
-        })
-        return sum;
-      }
-    }
-
-  }
-
-  get numOfFreePortsAvailable() {
-    return PortsSet.count.freePorts(this.ports);
-  }
-
-  get numOfTakenPortsAvailable() {
-    return this.numOfAllPortsAvailable - this.numOfFreePortsAvailable;
-  }
-
-
-  get numOfAllPortsAvailable() {
-    return PortsSet.count.allPorts(this.ports);
-  }
-
-  checkIfFreePortAmountEnouth(
-    projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
+  //#region check if enought ports for project or service
+  private checkIfFreePortAmountEnouth(
+    projectLocationOrSystemService: Project | Models.system.SystemService,
     howManyPorts: number, ports: PortInstance[]) {
 
     if (_.isUndefined(howManyPorts) && _.isString(projectLocationOrSystemService)) {
-      const Project = CLASS.getBy('Project') as any;
+
       const proj = Project.From(projectLocationOrSystemService);
       howManyPorts = 1 + (proj.isWorkspace ? proj.children.length : 0)
     }
-    let sum = 0;
-    ports.forEach(ins => {
-      if (ins.isFree) {
-        sum += ins.size;
-      }
-    })
     return PortsSet.count.freePorts(ports) >= howManyPorts;
   }
+  //#endregion
 
+  //#region get all ports instances
   private generateAllInstaces(ports: PortInstance[]) {
     let allInstaces: PortInstance[] = [];
     ports.forEach((ins) => {
@@ -130,8 +128,10 @@ export class PortsSet {
     });
     return allInstaces;
   }
+  //#endregion
 
-  async reserveFreePortsFor(projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
+  //#region reserve free ports for
+  public async reserveFreePortsFor(projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
     howManyPorts: number = 1) {
     return await this._reserveFreePortsFor(projectLocationOrSystemService, howManyPorts, this.ports);
   }
@@ -184,10 +184,10 @@ export class PortsSet {
 
     if (isProject && project.children.length > 0) {
       const childrenSuccessReserverPortsArr = [];
-      const children =  project.children;
+      const children = project.children;
       for (let index = 0; index < children.length; index++) {
         const child = children[index];
-        if(await this._reserveFreePortsFor(child, undefined, ports, allInstaces)) {
+        if (await this._reserveFreePortsFor(child, undefined, ports, allInstaces)) {
           childrenSuccessReserverPortsArr.push(child);
         }
       }
@@ -209,12 +209,31 @@ export class PortsSet {
     }
     return true;
   }
+  //#endregion
 
-  getReserverFor(projectLocationOrSevice: string | Models.system.SystemService): PortInstance[] {
+
+  /**
+   * Get port of just registerd service
+   */
+  public async registerOnFreePort(service: Models.system.SystemService): Promise<number> {
+    const allInstaces = this.generateAllInstaces(this.ports);
+    const portInstacnce = allInstaces.find(p => p.isFree);
+    if (!portInstacnce) {
+      Helpers.error(`There is not free port to register service: ${service}`, false, true);
+    }
+    portInstacnce.reservedFor = service;
+    const ports = this.makeSmaller(allInstaces);
+    this.ports = ports;
+    this.reorder();
+    await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
+    return portInstacnce.id as number;
+  }
+
+  public getReserverFor(projectLocationOrSevice: string | Models.system.SystemService): PortInstance[] {
     return this.ports.filter(f => _.isEqual(f.reservedFor, projectLocationOrSevice));
   }
 
-  async update(port: PortInstance): Promise<boolean> {
+  public async update(port: PortInstance): Promise<boolean> {
     const ins = this.ports.find(f => f.isEqual(port));
     if (!ins) {
       return false;
@@ -224,21 +243,22 @@ export class PortsSet {
     return true;
   }
 
-  async remove(port: PortInstance) {
+  public async remove(port: PortInstance) {
     this.ports = this.ports.filter(f => !f.isEqual(port));
     await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
   }
 
-  add(port: PortInstance): boolean {
+  public async add(port: PortInstance): Promise<boolean> {
     if (this.ports.filter(p => p.includes(port)).length > 0) {
       return false;
     }
-    this.ports.push(port)
-    this.reorder()
-    this.saveCallback(this.ports)
+    this.ports.push(port);
+    this.reorder();
+    await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
     return true;
   }
 
+
+
 }
 
-//#endregion

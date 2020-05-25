@@ -13,9 +13,9 @@ import {
   CommandsController,
   ProcessController
 } from './controllers';
-import { Helpers } from 'tnp-helpers';
+import { Helpers, Project } from 'tnp-helpers';
 import { DbCrud } from './db-crud';
-import { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance, ProcessMetaInfo } from './entites';
+import { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance, ProcessMetaInfo, PortInstance } from './entites';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
 import { ProcessBoundAction } from './models';
@@ -108,6 +108,17 @@ export class TnpDB {
       Helpers.removeFileIfExists(config.pathes.tmp_transaction_pid_txt);
       await this.reinitDB();
       Helpers.log('[db] reinit transacton finish');
+
+      // const portsManger = (await this.__portsCtrl.manager);
+      // const deamonPort = await portsManger.registerOnFreePort({
+      //   name: 'firedev-daemon'
+      // });
+
+      // // Project.Daemon as Models.other.IProject
+
+
+    } else {
+
     }
   }
   //#endregion
@@ -140,7 +151,7 @@ export class TnpDB {
   //#endregion
 
   //#region check if build allowed
-  public async checkBuildIfAllowed(currentProject: Models.other.IProject,
+  public async checkBuildIfAllowed(currentProject: Project,
     buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
     // console.log('current build options', buildOptions)
 
@@ -329,10 +340,10 @@ export class TnpDB {
   public async getProjects(): Promise<ProjectInstance[]> {
     return await this.crud.getAll(ProjectInstance)
   }
-  public async addProjectIfNotExist(project: Models.other.IProject) {
+  public async addProjectIfNotExist(project: Project) {
     await this.__projectsCtrl.addIfNotExists(ProjectInstance.from(project));
   }
-  public async killInstancesFrom(projects: Models.other.IProject[]) {
+  public async killInstancesFrom(projects: Project[]) {
     await this.__buildsCtrl.update()
     await this.__buildsCtrl.killInstancesFrom(projects)
     await this.__buildsCtrl.update()

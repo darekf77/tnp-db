@@ -9,7 +9,7 @@ import {
   EntityNames, CommandInstance, ProjectInstance,
   ProcessInstance
 } from './entites';
-import { Helpers } from 'tnp-helpers';
+import { Helpers, Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';
 
 
@@ -108,7 +108,7 @@ export class DbCrud {
   }
 
   private async afterRetrive<T = any>(value: any, entityName: EntityNames): Promise<DBBaseEntity> {
-    const Project = CLASS.getBy('Project') as any;
+
     if (entityName === 'builds') {
       const v = value as BuildInstance;
       const ins: BuildInstance = new BuildInstance(v);

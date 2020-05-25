@@ -3,11 +3,12 @@ import * as _ from 'lodash';
 import { DBBaseEntity } from './base-entity';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
+import { Project } from 'tnp-helpers';
 
 @CLASS.NAME('ProjectInstance')
 export class ProjectInstance extends DBBaseEntity {
 
-  public static from(project: Models.other.IProject): ProjectInstance {
+  public static from(project: Project): ProjectInstance {
     if (!project) {
       return
     }
@@ -15,8 +16,7 @@ export class ProjectInstance extends DBBaseEntity {
   }
 
   get project() {
-    const Project = CLASS.getBy('Project') as any;
-    return Project.From(this.locationOfProject);
+    return Project.From<Project>(this.locationOfProject);
   }
 
   isEqual(anotherInstace: ProjectInstance): boolean {

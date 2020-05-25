@@ -1,4 +1,3 @@
-declare const ENV;
 import { Project } from 'tnp-bundle';
 import * as _ from 'lodash';
 import * as low from 'lowdb';
@@ -20,7 +19,7 @@ import { PortInstance, DomainInstance } from '../entites';
 
 
 function db() {
-  let location = path.join(__dirname, '..', 'tmp-test-db.json');
+  let location = path.join(__dirname, '../../tmp-test-db.json');
   if(fse.existsSync(location)) {
     fse.unlinkSync(location);
   }

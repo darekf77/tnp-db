@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as  psList from 'ps-list';
 
 import { BaseController } from './base-controlller';
-import { Helpers } from 'tnp-helpers';
+import { Helpers, Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';
 import { BuildInstance } from '../entites/build-instance';
 // import { BuildOptions } from '../../project/features';
@@ -48,7 +48,7 @@ export class BuildsController extends BaseController {
     for (let index = 0; index < procs.length; index++) {
       const p = procs[index];
       const location = Helpers.getWorkingDirOfProcess(p.pid);
-      const Project = CLASS.getBy('Project') as any;
+
       const project = Project.From(location)
       if (project) {
         const b = new BuildInstance({
@@ -77,7 +77,7 @@ export class BuildsController extends BaseController {
     await this.crud.setBulk(builds, BuildInstance);
   }
 
-  async killInstancesFrom(projects: Models.other.IProject[]) {
+  async killInstancesFrom(projects: Project[]) {
     let projectsLocations = projects.map(p => p.location);
     (await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[])
       .filter(b => projectsLocations.includes(b.project.location))
@@ -91,7 +91,7 @@ export class BuildsController extends BaseController {
 
   }
 
-  async add(project: Models.other.IProject, buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number) {
+  async add(project: Project, buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number) {
     const currentB = new BuildInstance({
       buildOptions,
       pid,
@@ -168,7 +168,7 @@ export class BuildsController extends BaseController {
     return all.find(a => a.pid === pid);
   }
 
-  async getExistedForOptions(project: Models.other.IProject, buildOptions: Models.dev.IBuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {
+  async getExistedForOptions(project: Project, buildOptions: Models.dev.IBuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {
     await this.update();
     const currentB = new BuildInstance({ buildOptions, pid, location: project.location, ppid });
     await currentB.prepare();

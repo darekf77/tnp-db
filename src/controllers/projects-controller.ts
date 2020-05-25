@@ -11,7 +11,7 @@ if (!global['ENV']) {
 }
 const config = global['ENV'].config as any;
 import { CLASS } from 'typescript-class-helpers';
-
+import { Project } from 'tnp-helpers';
 
 @CLASS.NAME('ProjectsController')
 export class ProjectsController extends BaseController {
@@ -22,7 +22,7 @@ export class ProjectsController extends BaseController {
 
   private recognized: ProjectInstance[] = []
   async addExisted() {
-    const Project = CLASS.getBy('Project') as any;
+
     this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '..')))
     if (global.testMode) {
       this.discoverProjectsInLocation(path.resolve(config.pathes.tnp_tests_context), true)
@@ -45,7 +45,7 @@ export class ProjectsController extends BaseController {
 
     if (projectInstance.project.isWorkspace && !projectInstance.project.isGenerated
       && projectInstance.project.distribution) {
-      const proj = projectInstance.project.distribution;
+      const proj = projectInstance.project.distribution as any as Project;
       if (proj) {
         // console.log(`ADD STATIC ${proj.location}`)
         this.addIfNotExists(ProjectInstance.from(proj))
@@ -54,12 +54,12 @@ export class ProjectsController extends BaseController {
 
     if (this.crud.addIfNotExist(projectInstance)) {
       if (_.isArray(projectInstance.project.preview)) {
-        this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview))
+        this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
       }
       if (_.isArray(projectInstance.project.children)) {
-        projectInstance.project.children.forEach(c => this.addIfNotExists(ProjectInstance.from(c)))
+        projectInstance.project.children.forEach(c => this.addIfNotExists(ProjectInstance.from(c as any as Project)))
       }
-      this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview))
+      this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
     }
   }
 
@@ -75,7 +75,7 @@ export class ProjectsController extends BaseController {
     }
 
     // this.discoverFrom(Project.Tnp);
-    const Project = CLASS.getBy('Project') as any;
+
     fse.readdirSync(location)
       .map(name => path.join(location, name))
       .map(location => {
