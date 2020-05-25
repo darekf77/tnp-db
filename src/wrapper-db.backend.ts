@@ -338,7 +338,10 @@ export class TnpDB {
 
   //#region projects
   public async getProjects(): Promise<ProjectInstance[]> {
-    return await this.crud.getAll(ProjectInstance)
+    let projects = await this.crud.getAll<ProjectInstance>(ProjectInstance)
+    projects = projects.filter(p => !!p.project);
+    await this.crud.setBulk(projects, ProjectInstance)
+    return projects;
   }
   public async addProjectIfNotExist(project: Project) {
     await this.__projectsCtrl.addIfNotExists(ProjectInstance.from(project));
