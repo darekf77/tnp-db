@@ -2,12 +2,13 @@
 import * as _ from 'lodash';
 declare const global: any;
 // const start = global.start as any;
-import { Helpers } from 'tnp-helpers';
+import { Helpers, Project } from 'tnp-helpers';
 
 import { BaseController } from './base-controlller';
 import { CommandInstance } from '../entites/command-instance';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
+import { BuildOptions } from '../build-options';
 
 
 @CLASS.NAME('CommandsController')
@@ -61,16 +62,16 @@ export class CommandsController extends BaseController {
     }
   }
 
-  async updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
+  async updateCommandBuildOptions(location: string, buildOptions: BuildOptions) {
     const cmd = await this.lastCommandFrom(location, true);
     if (cmd) {
       const clients = _.isArray(buildOptions.forClient) ? (buildOptions.forClient as any[])
-        .map((c: Models.other.IProject) => {
+        .map((c: Project) => {
           return `--forClient ${c.name}`
         }).join(' ') : '';
 
       const copyto = _.isArray(buildOptions.copyto) ? (buildOptions.copyto as any[])
-        .map((c: Models.other.IProject) => {
+        .map((c: Project) => {
           return `--copyto ${c.location}`
         }).join(' ') : '';
 

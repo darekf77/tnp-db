@@ -4,7 +4,6 @@ export * from './build-options';
 export * from './wrapper-db.backend';
 import * as _DB from './scripts/DB.backend';
 
-// console.log('asd')
 export const DB = _DB.default;
 
 export const CLI_FUNCTIONS = [

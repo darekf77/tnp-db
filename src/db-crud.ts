@@ -174,8 +174,8 @@ export class DbCrud {
       const port = entity as PortInstance;
       return _.cloneDeep({
         id: port.id,
-        reservedFor: !!port.reservedFor && _.isString((port.reservedFor as Models.other.IProject).location) ?
-          (port.reservedFor as Models.other.IProject).location : port.reservedFor
+        reservedFor: !!port.reservedFor && _.isString((port.reservedFor as Project).location) ?
+          (port.reservedFor as Project).location : port.reservedFor
       } as PortInstance);
     }
 

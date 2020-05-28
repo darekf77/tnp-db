@@ -8,6 +8,7 @@ import { Models } from 'tnp-models';
 import { BuildInstance } from '../entites/build-instance';
 // import { BuildOptions } from '../../project/features';
 import { CLASS } from 'typescript-class-helpers';
+import { BuildOptions } from '../build-options';
 declare const global: any;
 if (!global['ENV']) {
   global['ENV'] = {};
@@ -91,7 +92,7 @@ export class BuildsController extends BaseController {
 
   }
 
-  async add(project: Project, buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number) {
+  async add(project: Project, buildOptions: BuildOptions, pid: number, ppid: number) {
     const currentB = new BuildInstance({
       buildOptions,
       pid,
@@ -102,7 +103,7 @@ export class BuildsController extends BaseController {
     await this.crud.addIfNotExist(currentB);
   }
 
-  async distBuildFoundedFor(project: Models.other.IProject) {
+  async distBuildFoundedFor(project: Project) {
     await this.update();
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const result = all.find(b => {
@@ -118,7 +119,7 @@ export class BuildsController extends BaseController {
         && b.buildOptions.appBuild === false
         && (project.isStandaloneProject ? true :
           _.isObject(
-            (b.buildOptions.forClient as Models.other.IProject[]).find(c => {
+            (b.buildOptions.forClient as Project[]).find(c => {
               // console.log(`checking ${c.name}`)
               return c.location === project.location;
             }))
@@ -128,7 +129,7 @@ export class BuildsController extends BaseController {
     return result;
   }
 
-  async appBuildFoundedFor(project: Models.other.IProject) {
+  async appBuildFoundedFor(project: Project) {
     await this.update();
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const possibleLocation = [];
@@ -168,7 +169,7 @@ export class BuildsController extends BaseController {
     return all.find(a => a.pid === pid);
   }
 
-  async getExistedForOptions(project: Project, buildOptions: Models.dev.IBuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {
+  async getExistedForOptions(project: Project, buildOptions: BuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {
     await this.update();
     const currentB = new BuildInstance({ buildOptions, pid, location: project.location, ppid });
     await currentB.prepare();

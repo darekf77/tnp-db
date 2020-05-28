@@ -10,7 +10,7 @@ import { Project } from 'tnp-helpers';
 import { BuildOptions } from '../build-options';
 
 export type IBuildInstance = {
-  buildOptions?: Models.dev.IBuildOptions;
+  buildOptions?: BuildOptions;
   cmd?: string;
   pid: number;
   ppid: number;
@@ -61,12 +61,12 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     return res;
   }
 
-  async updateCmdFrom(buildOptions: Models.dev.IBuildOptions) {
+  async updateCmdFrom(buildOptions: BuildOptions) {
     this.cmd = BuildOptions.exportToCMD(buildOptions);
     this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
   }
 
-  private _buildOptions: Models.dev.IBuildOptions;
+  private _buildOptions: BuildOptions;
   get buildOptions() {
     return this._buildOptions;
   }
@@ -104,8 +104,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   ppid: number;
   location?: string;
   get project() {
-
-    return Project.From(this.location) as Models.other.IProject;
+    return Project.From(this.location) as Project;
   }
 
 }

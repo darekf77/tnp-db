@@ -66,7 +66,7 @@ export class PortsSet {
   private makeSmaller(allInstacesSingle: PortInstance[]) {
     const ports: PortInstance[] = []
 
-    let currentProjectLocationOrSystemService: Models.other.IProject | Models.system.SystemService = undefined;
+    let currentProjectLocationOrSystemService: Project | Models.system.SystemService = undefined;
     let curretnPortIns: PortInstance;
     allInstacesSingle.forEach(ins => {
 
@@ -131,13 +131,13 @@ export class PortsSet {
   //#endregion
 
   //#region reserve free ports for
-  public async reserveFreePortsFor(projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
+  public async reserveFreePortsFor(projectLocationOrSystemService: Project | Models.system.SystemService,
     howManyPorts: number = 1) {
     return await this._reserveFreePortsFor(projectLocationOrSystemService, howManyPorts, this.ports);
   }
 
   private async _reserveFreePortsFor(
-    projectLocationOrSystemService: Models.other.IProject | Models.system.SystemService,
+    projectLocationOrSystemService: Project | Models.system.SystemService,
     howManyPorts: number = 1, ports: PortInstance[],
     allInstaces?: PortInstance[]): Promise<boolean> {
 
@@ -148,14 +148,14 @@ export class PortsSet {
     }
 
     const isProject = (projectLocationOrSystemService &&
-      _.isString((projectLocationOrSystemService as Models.other.IProject).location));
+      _.isString((projectLocationOrSystemService as Project).location));
 
     if (isProject && howManyPorts > 1) {
       throw `One project can only have on port`
     }
 
     if (isProject) {
-      var project = (projectLocationOrSystemService as Models.other.IProject);
+      var project = (projectLocationOrSystemService as Project);
       if (project.isWorkspace || project.isStandaloneProject) {
         saveInstancesToDb = true;
       }

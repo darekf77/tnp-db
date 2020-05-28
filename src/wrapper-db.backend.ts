@@ -19,6 +19,7 @@ import { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance, Proce
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
 import { ProcessBoundAction } from './models';
+import { BuildOptions } from './build-options';
 declare const global: any;
 if (!global['ENV']) {
   global['ENV'] = {};
@@ -114,7 +115,6 @@ export class TnpDB {
       //   name: 'firedev-daemon'
       // });
 
-      // // Project.Daemon as Models.other.IProject
 
 
     } else {
@@ -152,7 +152,7 @@ export class TnpDB {
 
   //#region check if build allowed
   public async checkBuildIfAllowed(currentProject: Project,
-    buildOptions: Models.dev.IBuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
+    buildOptions: BuildOptions, pid: number, ppid: number, onlyUpdate: boolean) {
     // console.log('current build options', buildOptions)
 
     await this.__projectsCtrl.addIfNotExists(ProjectInstance.from(currentProject));
@@ -274,7 +274,7 @@ export class TnpDB {
     }
   }
 
-  public async updateCommandBuildOptions(location: string, buildOptions: Models.dev.IBuildOptions) {
+  public async updateCommandBuildOptions(location: string, buildOptions: BuildOptions) {
     await this.__commandsCtrl.updateCommandBuildOptions(location, buildOptions);
   }
   //#endregion
@@ -310,11 +310,11 @@ export class TnpDB {
     });
   }
 
-  public async distBuildFoundedFor(project: Models.other.IProject) {
+  public async distBuildFoundedFor(project: Project) {
     return await this.__buildsCtrl.distBuildFoundedFor(project)
   }
 
-  public async appBuildFoundedFor(project: Models.other.IProject) {
+  public async appBuildFoundedFor(project: Project) {
     return await this.__buildsCtrl.appBuildFoundedFor(project)
   }
 
@@ -322,7 +322,7 @@ export class TnpDB {
     return await this.crud.getAll(BuildInstance);
   }
 
-  public async updateBuildOptions(buildOptions: Models.dev.IBuildOptions, pid: number) {
+  public async updateBuildOptions(buildOptions: BuildOptions, pid: number) {
     // console.log('current build options', buildOptions)
 
     const existed = await this.__buildsCtrl.getExistedByPid(pid);

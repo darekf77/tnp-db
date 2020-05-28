@@ -43,7 +43,7 @@ export class DomainsController extends BaseController {
   }
 
   private addDomain(address: string, environment: Models.env.EnvironmentName,
-    domains: DomainInstance[], project: Models.other.IProject) {
+    domains: DomainInstance[], project: Project) {
 
     if (!_.isString(address) || address.trim() === '') {
       return

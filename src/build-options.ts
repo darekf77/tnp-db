@@ -1,32 +1,27 @@
 //#region @backend
 import chalk from 'chalk';
 import * as path from 'path';
-import { Helpers, Project } from 'tnp-helpers';
 import { TnpDB } from './wrapper-db.backend';
-//#endregion
-
-import * as _ from 'lodash';
-import { Models } from 'tnp-models';
 if (!global['ENV']) {
   global['ENV'] = {};
 }
 const config = global['ENV'].config as any;
+//#endregion
+import * as _ from 'lodash';
+import { Helpers, Project } from 'tnp-helpers';
+import { Models } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
-// @ts-ignore
-// import type { Project as ProjectType } from '../../tnp/src/project/abstract/project/project';
 
 @CLASS.NAME('BuildOptions')
-export class BuildOptions implements Models.dev.IBuildOptions {
+export class BuildOptions implements Models.dev.StartForOptions {
 
   public static PropsToOmmitWhenStringify = ['copyto', 'forClient'];
   prod?: boolean;
   outDir?: Models.dev.BuildDir;
   watch?: boolean;
   watchOnly?: boolean;
-
   args?: string;
   progressCallback?: (fractionValue: number) => any;
-
   noConsoleClear?: boolean;
 
   /**
@@ -41,21 +36,19 @@ export class BuildOptions implements Models.dev.IBuildOptions {
    * Generate only backend, without browser version
    */
   onlyBackend?: boolean;
-
-
   onlyWatchNoBuild?: boolean;
-  copyto?: Models.other.IProject[] | string[];
+  copyto?: Project[] | string[];
   copytoAll?: boolean;
 
   /**
    * For isomorphic-lib
    * Specyify build targets as workspace childs projects names
    */
-  forClient?: Models.other.IProject[] | string[];
+  forClient?: Project[] | string[];
 
 
-  //#region @backend
   private static getMainOptions(args: string[]) {
+    //#region @backendFunc
     const ind = args.findIndex((p, i) => (p.endsWith('/tnp') || p === 'tnp')
       && !!args[i + 1] && args[i + 1].startsWith('build'))
     let prod = false, watch = false, outDir = 'dist', appBuild = false;
@@ -94,11 +87,15 @@ export class BuildOptions implements Models.dev.IBuildOptions {
       return;
     }
     return { prod, watch, outDir, appBuild }
+    //#endregion
   }
 
-  public static async from(argsString: string, projectCurrent: Models.other.IProject,
-    mainOptions?: Models.dev.IBuildOptions): Promise<BuildOptions> {
-
+  public static async from(
+    argsString: string,
+    projectCurrent: Project,
+    mainOptions?: Partial<BuildOptions>
+  ): Promise<BuildOptions> {
+    //#region @backendFunc
     const split = argsString.split(' ');
     // console.log('split', split)
     const optionsToMerge = !!mainOptions ? mainOptions : this.getMainOptions(split);
@@ -106,7 +103,7 @@ export class BuildOptions implements Models.dev.IBuildOptions {
     if (!optionsToMerge) {
       return;
     }
-    const argsObj: Models.dev.IBuildOptions = require('minimist')(split)
+    const argsObj: Partial<BuildOptions> = require('minimist')(split)
     // console.log('argsObj', argsObj)
     argsObj.watch = optionsToMerge.watch;
     argsObj.prod = optionsToMerge.prod;
@@ -127,7 +124,7 @@ export class BuildOptions implements Models.dev.IBuildOptions {
           // console.log('projectParentChildName', projectParentChildName)
           const proj = projectCurrent.parent.children.find(c => {
             return c.name === (projectParentChildName as string) || c.location === (projectParentChildName as string)
-          }) as Models.other.IProject;
+          }) as Project;
           if (!proj) {
             Helpers.log(`
             projectCurrent.parent.children: ${projectCurrent.parent.children.map(c => c.name)}
@@ -184,9 +181,11 @@ export class BuildOptions implements Models.dev.IBuildOptions {
     argsObj.genOnlyClientCode = !!argsObj.genOnlyClientCode;
 
     return _.merge(new BuildOptions(), argsObj) as BuildOptions;
+    //#endregion
   }
 
   public static exportToCMD(buildOptions: BuildOptions): string {
+    //#region @backendFunc
     const { appBuild, outDir, watch,
       copyto, baseHref, forClient, prod,
       genOnlyClientCode, onlyBackend, onlyWatchNoBuild
@@ -239,8 +238,8 @@ export class BuildOptions implements Models.dev.IBuildOptions {
 
 
     return `${config.frameworkName} build:${type}${watch ? ':watch' : ''}${prod ? ':prod' : ''} ${args.join(' ')}`
+    //#endregion
   }
-  //#endregion
 
   public toString = () => {
     return JSON.stringify(_.mergeWith({}, _.omit(this, BuildOptions.PropsToOmmitWhenStringify)), null, 4);
