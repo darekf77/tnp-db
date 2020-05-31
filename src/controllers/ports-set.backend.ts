@@ -55,7 +55,7 @@ export class PortsSet {
     } else {
       this.saveCallback = () => { }
     }
-    this.ports = _.cloneDeep(ports).map(c => _.merge(new PortInstance(), c));
+    this.ports = ports.map(c => PortInstance.clone(c));
   }
 
   private reorder() {

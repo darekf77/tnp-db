@@ -23,11 +23,11 @@ export class ProjectsController extends BaseController {
   private recognized: ProjectInstance[] = []
   async addExisted() {
 
-    this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '..')))
+    await this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '..')))
     if (global.testMode) {
-      this.discoverProjectsInLocation(path.resolve(config.pathes.tnp_tests_context), true)
+      await this.discoverProjectsInLocation(path.resolve(config.pathes.tnp_tests_context), true)
     } else {
-      this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '../firedev-projects')))
+      await this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '../firedev-projects')))
     }
   }
 
@@ -48,35 +48,40 @@ export class ProjectsController extends BaseController {
       const proj = projectInstance.project.distribution as any as Project;
       if (proj) {
         // console.log(`ADD STATIC ${proj.location}`)
-        this.addIfNotExists(ProjectInstance.from(proj))
+        await this.addIfNotExists(ProjectInstance.from(proj))
       }
     }
 
-    if (this.crud.addIfNotExist(projectInstance)) {
+    if (await this.crud.addIfNotExist(projectInstance)) {
       if (_.isArray(projectInstance.project.preview)) {
-        this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
+        await this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
       }
       if (_.isArray(projectInstance.project.children)) {
-        projectInstance.project.children.forEach(c => this.addIfNotExists(ProjectInstance.from(c as any as Project)))
+        const children = projectInstance.project.children;
+        for (let index = 0; index < children.length; index++) {
+          const c = children[index];
+          await this.addIfNotExists(ProjectInstance.from(c as any as Project))
+        }
       }
-      this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
+      await this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
     }
   }
 
-  discoverProjectsInLocation(location: string, searchSubfolders = false) {
+  async discoverProjectsInLocation(location: string, searchSubfolders = false) {
 
     if (searchSubfolders) {
-      fse.readdirSync(location)
-        .map(name => path.join(location, name))
-        .forEach(subLocation => {
-          this.discoverProjectsInLocation(subLocation)
-        })
+      const locations = fse
+        .readdirSync(location)
+        .map(name => path.join(location, name));
+
+      for (let index = 0; index < locations.length; index++) {
+        const subLocation = locations[index];
+        await this.discoverProjectsInLocation(subLocation)
+      }
       return;
     }
 
-    // this.discoverFrom(Project.Tnp);
-
-    fse.readdirSync(location)
+    const projects = fse.readdirSync(location)
       .map(name => path.join(location, name))
       .map(location => {
         // console.log(location)
@@ -86,9 +91,11 @@ export class ProjectsController extends BaseController {
       .filter(f => {
         return f.typeIsNot('unknow-npm-project')
       })
-      .forEach(project => {
-        this.addIfNotExists(ProjectInstance.from(project))
-      })
+
+    for (let index = 0; index < projects.length; index++) {
+      const project = projects[index];
+      await this.addIfNotExists(ProjectInstance.from(project))
+    }
   }
 
 }

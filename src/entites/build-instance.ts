@@ -42,10 +42,12 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     this.cmd = CommandInstance.fixedCommand(data.cmd);
     if (this.cmd) {
       this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
+      this.cmd = await BuildOptions.exportToCMD(this._buildOptions);
     } else {
       if (_.isObject(data.buildOptions)) {
-        this.cmd = BuildOptions.exportToCMD(data.buildOptions);
+        this.cmd = await BuildOptions.exportToCMD(data.buildOptions);
         this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
+        this.cmd = await BuildOptions.exportToCMD(this._buildOptions);
       } else {
         this.cmd = '';
         this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
@@ -62,7 +64,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   }
 
   async updateCmdFrom(buildOptions: BuildOptions) {
-    this.cmd = BuildOptions.exportToCMD(buildOptions);
+    this.cmd = await BuildOptions.exportToCMD(buildOptions);
     this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
   }
 
@@ -87,12 +89,14 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
   public get brief() {
     let brief = this.buildOptions ? (
       '(' +
-      (this.buildOptions.watch ? 'watch' : 'static') + ',' +
+      (this.buildOptions.staticBuild ? 'static' : '') + ',' +
+      (this.buildOptions.prod ? 'prod' : '') + ',' +
+      (this.buildOptions.watch ? 'watch' : 'normal') + ',' +
       (this.buildOptions.appBuild ? 'app' : 'lib') + ',' +
       (this.buildOptions.outDir) +
       ')'
     ) : ''
-    return brief + `build instace for project: ${chalk.bold(this.project.name)} on pid: ${this.pid}`;
+    return brief + `build instace for project: ${this.project.name} on pid: ${this.pid}`;
   }
 
   kill() {

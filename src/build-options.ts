@@ -19,6 +19,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
   prod?: boolean;
   outDir?: Models.dev.BuildDir;
   watch?: boolean;
+  staticBuild?: boolean;
   watchOnly?: boolean;
   args?: string;
   progressCallback?: (fractionValue: number) => any;
@@ -49,44 +50,59 @@ export class BuildOptions implements Models.dev.StartForOptions {
 
   private static getMainOptions(args: string[]) {
     //#region @backendFunc
-    const ind = args.findIndex((p, i) => (p.endsWith('/tnp') || p === 'tnp')
-      && !!args[i + 1] && args[i + 1].startsWith('build'))
-    let prod = false, watch = false, outDir = 'dist', appBuild = false;
+    const ars = (config.argsReplacementsBuild as { [shortBuildName in string]: string } || {});
+    const shortValuesArgs = Object.keys(ars);
+    const toCheckArgs = Object.values(ars);
+    const toCheckArgsSimplfied = Object.values(ars).map(c => Helpers.cliTool.paramsFrom(c));
+
+    const ind = args.findIndex((p, i) => {
+      const ends = ((config.coreBuildFrameworkNames as string[] || []).filter(c => {
+        return p.endsWith(`/${c}`) || p == c;
+      }).length > 0);
+
+      const nextArgExisted = !!args[i + 1];
+      if (nextArgExisted && shortValuesArgs.includes(args[i + 1])) {
+        args[i + 1] = ars[args[i + 1]];
+      }
+      if (nextArgExisted && toCheckArgsSimplfied.includes(Helpers.cliTool.paramsFrom(args[i + 1]))) {
+        args[i + 1] = toCheckArgs.find(c => {
+          return Helpers.cliTool.paramsFrom(c) === Helpers.cliTool.paramsFrom(args[i + 1]);
+        });
+      }
+
+      return ends &&
+        nextArgExisted &&
+        (toCheckArgs
+          .map(c => Helpers.cliTool.paramsFrom(c))
+          .includes(Helpers.cliTool.paramsFrom(args[i + 1]))
+        );
+    })
+    let prod = false, watch = false, outDir = 'dist', appBuild = false, staticBuild = false;
     if (ind >= 0) {
-      const cmd = _.kebabCase(args[ind + 1]).split('-').slice(1)
-      const first = _.first(cmd)
-
-      if (first === 'dist' || first === 'bundle') {
-        outDir = first;
-      }
-      if (first === 'app') {
-        appBuild = true;
-      }
-      if (cmd.length >= 2) {
-        const second = cmd[1];
-        if (second === 'prod') {
+      const cmd = _.kebabCase(args[ind + 1]).split('-').slice(1);
+      for (let index = 0; index < cmd.length; index++) {
+        const cmdPart = cmd[index];
+        if (cmdPart === 'static') {
+          staticBuild = true;
+        }
+        if (cmdPart === 'lib') {
+          outDir = 'dist';
+        }
+        if (cmdPart === 'dist' || cmdPart === 'bundle') {
+          outDir = cmdPart;
+        }
+        if (cmdPart === 'app') {
+          appBuild = true;
+        }
+        if (cmdPart === 'prod') {
           prod = true;
         }
-        if (second === 'watch') {
+        if (cmdPart === 'watch') {
           watch = true;
         }
       }
-
-      if (cmd.length >= 3) {
-        const third = cmd[1];
-        if (third === 'prod') {
-          prod = true;
-        }
-        if (third === 'watch') {
-          watch = true;
-        }
-      }
-
-
-    } else {
-      return;
+      return { prod, watch, outDir, appBuild, staticBuild }
     }
-    return { prod, watch, outDir, appBuild }
     //#endregion
   }
 
@@ -129,7 +145,8 @@ export class BuildOptions implements Models.dev.StartForOptions {
             Helpers.log(`
             projectCurrent.parent.children: ${projectCurrent.parent.children.map(c => c.name)}
             `)
-            Helpers.error(`${chalk.bold('--forClient argument')} : Cannot find module ${chalk.bold(projectParentChildName)}`);
+            Helpers.error(`${chalk.bold('--forClient argument')} : Cannot find module ${chalk.bold(projectParentChildName)} `
+              + `in workspace ${(projectCurrent.parent as Project).genericName}`);
           }
           // Helpers.info(`(${projectCurrent.name}) Build only for client ${chalk.bold(projectParentChildName)}`)
           return proj;
@@ -146,24 +163,12 @@ export class BuildOptions implements Models.dev.StartForOptions {
       }
 
       for (let index = 0; index < argsObj.copyto.length; index++) {
-        let argPath = argsObj.copyto[index];
+        let argPath = argsObj.copyto[index] as any;
         //     // console.log('argPath', argPath)
         //     // console.log('raw arg', args)
 
         //     // console.log('path', argPath)
-        if (_.isObject(argPath)) {
-          argPath = (argPath as any).location;
-        }
-
-        let project = Project.nearestTo<Project>(argPath as string);
-        if (!project) {
-          const dbProjectsToCheck: Project[] = (await (await TnpDB.Instance(config.dbLocation)).getProjects()).map(p => p.project);
-
-          project = dbProjectsToCheck.find(p => p.genericName === argPath);
-          if (!project) {
-            project = dbProjectsToCheck.find(p => p.name === argPath);
-          }
-        }
+        let project = (_.isString(argPath && argPath.location) ? argPath : await getProjectFromArgPath(argPath));
 
         if (!project) {
           Helpers.error(`[build-options] Incorrect "copyto" values. Path doesn't contain ${config.frameworkName} type project: ${argPath}`, false, true)
@@ -184,39 +189,36 @@ export class BuildOptions implements Models.dev.StartForOptions {
     //#endregion
   }
 
-  public static exportToCMD(buildOptions: BuildOptions): string {
+  public static async exportToCMD(buildOptions: BuildOptions): Promise<string> {
     //#region @backendFunc
-    const { appBuild, outDir, watch,
-      copyto, baseHref, forClient, prod,
+    if (!buildOptions) {
+      return '';
+    }
+    const { appBuild = false, outDir, watch = false,
+      copyto, baseHref, forClient, prod = false, staticBuild = false,
       genOnlyClientCode, onlyBackend, onlyWatchNoBuild
     } = buildOptions;
-    const type = appBuild ? 'app' : outDir;
     let args = [];
 
     if (_.isArray(copyto)) {
-      const argsFromCopyto = (copyto as any[]).map(c => {
-        let locationOfProject: string;
-        if (_.isString(c)) {
-          locationOfProject = c;
-        } else {
-          locationOfProject = c.location;
-        }
-        return `--copyto ${locationOfProject}`
-      });
-
+      const argsFromCopyto = [];
+      for (let index = 0; index < copyto.length; index++) {
+        const argPath = copyto[index] as any;
+        const project = (_.isString(argPath && argPath.location) ? argPath
+          : await getProjectFromArgPath(argPath));
+        argsFromCopyto.push(`--copyto ${project.location}`);
+      }
       args = args.concat(argsFromCopyto)
     }
 
     if (_.isArray(forClient)) {
-      const argsFromForClient = (forClient as any[]).map(c => {
-        let project: string;
-        if (_.isString(c)) {
-          project = c;
-        } else {
-          project = c.name;
-        }
-        return `--forClient ${project}`
-      })
+      const argsFromForClient = []
+      for (let index = 0; index < forClient.length; index++) {
+        const argPath = forClient[index] as any;
+        const project = (_.isString(argPath && argPath.location) ? argPath
+          : await getProjectFromArgPath(argPath));
+        argsFromForClient.push(`--forClient ${project.location}`);
+      }
       args = args.concat(argsFromForClient);
     }
 
@@ -236,8 +238,13 @@ export class BuildOptions implements Models.dev.StartForOptions {
       args.push(`--baseHref ${baseHref}`)
     }
 
-
-    return `${config.frameworkName} build:${type}${watch ? ':watch' : ''}${prod ? ':prod' : ''} ${args.join(' ')}`
+    return `${config.frameworkName} ` +
+      `${staticBuild ? 'static:' : ''}` +
+      `build:` +
+      `${appBuild ? 'app' : outDir}` +
+      `${prod ? ':prod' : ''}` +
+      `${watch ? ':watch' : ''}` +
+      ` ${args.join(' ')}`
     //#endregion
   }
 
@@ -247,3 +254,22 @@ export class BuildOptions implements Models.dev.StartForOptions {
 
 
 }
+
+//#region @backend
+async function getProjectFromArgPath(argPath: string | object) {
+  if (_.isObject(argPath)) {
+    argPath = (argPath as any).location;
+  }
+
+  let project = Project.nearestTo<Project>(argPath as string);
+  if (!project) {
+    const dbProjectsToCheck: Project[] = (await (await TnpDB.Instance(config.dbLocation)).getProjects()).map(p => p.project);
+
+    project = dbProjectsToCheck.find(p => p.genericName === argPath);
+    if (!project) {
+      project = dbProjectsToCheck.find(p => p.name === argPath);
+    }
+  }
+  return project;
+}
+//#endregion

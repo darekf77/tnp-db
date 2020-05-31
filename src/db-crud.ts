@@ -95,6 +95,7 @@ export class DbCrud {
     const entityName = this.getEntityNameByClassName(className)
     const json = entites.map(c => this.preprareEntityForSave(c));
     // console.log(`[setBulk] set json for entity ${entityName}`, json)
+    this.db.read();
     await this.db.set(entityName, json).write()
     return true;
   }

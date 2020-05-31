@@ -29,7 +29,11 @@ export class CommandInstance extends DBBaseEntity {
       return command
     }
     const args = command.split(' ');
-    const i = args.findIndex(arg => arg.endsWith(`/bin/tnp`))
+    const shortCoreToolsNames = (config.coreBuildFrameworkNames as string[])
+    const i = args.findIndex(arg => {
+      const ends = (shortCoreToolsNames.filter(s => arg.endsWith(`/bin/${s}`)).length > 0)
+      return ends;
+    })
     if (i === -1) {
       return command;
     }

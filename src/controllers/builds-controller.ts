@@ -45,7 +45,15 @@ export class BuildsController extends BaseController {
   }
 
   private async getExisted(ps: Models.system.PsListInfo[]) {
-    let procs = ps.filter(p => p.cmd.split(' ').filter(p => p.endsWith(`/bin/tnp`)).length > 0)
+    // const js = JSON.stringify(ps);
+    let procs = ps.filter(p => p.cmd.split(' ').filter(p => {
+
+      const ends = ((config.coreBuildFrameworkNames as string[] || []).filter(c => {
+        return p.endsWith(`/bin/${c}`);
+      }).length > 0)
+
+      return ends;
+    }).length > 0)
     for (let index = 0; index < procs.length; index++) {
       const p = procs[index];
       const location = Helpers.getWorkingDirOfProcess(p.pid);

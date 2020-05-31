@@ -20,6 +20,8 @@ import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
 import { ProcessBoundAction } from './models';
 import { BuildOptions } from './build-options';
+import { Morphi } from 'morphi';
+import { DbDaemonController } from './daemon/deamon-controller';
 declare const global: any;
 if (!global['ENV']) {
   global['ENV'] = {};
@@ -28,6 +30,8 @@ const config = global['ENV'].config as any;
 const buildOptionsParams = ['watch', 'appBuild', 'prod'];
 export { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance } from './entites';
 //#endregion
+
+const DAEMON_PORT_NAME = 'firedev-daemon';
 
 export class TnpDB {
   //#region static access
@@ -110,17 +114,36 @@ export class TnpDB {
       await this.reinitDB();
       Helpers.log('[db] reinit transacton finish');
 
-      // const portsManger = (await this.__portsCtrl.manager);
-      // const deamonPort = await portsManger.registerOnFreePort({
-      //   name: 'firedev-daemon'
-      // });
 
-
-
-    } else {
 
     }
   }
+
+  static async restartDaemon(db: TnpDB) {
+    Helpers.info(`[tnp-db] Restarting daemon..`);
+    const portsManger = (await db.__portsCtrl.manager);
+    const deamonPort = await portsManger.registerOnFreePort({
+      name: DAEMON_PORT_NAME
+    });
+
+    console.log(`Assigned port to daemon: ${deamonPort}`);
+    const porjDaemon = (await db.getProjects()).find(p => p.project
+      && p.project.isStandaloneProject
+      && p.project.name === 'background-daemon');
+    if (!porjDaemon) {
+      Helpers.error(`[tnp-dn] Not able to find daemon project`);
+    }
+    // porjDaemon.project.run(`node run.js --port ${deamonPort}`).sync();
+    const proj = porjDaemon.project;
+    Helpers.info(`Starting project: ${proj.genericName} ... `);
+    Helpers.killProcessByPort(deamonPort);
+    proj.run(`tnp start --port ${deamonPort} &`, {
+      output: false,
+      silence: true
+    }).sync();
+    Helpers.info(`Start OK.. project ${proj.genericName} is running in background`);
+  }
+
   //#endregion
 
   //#region reinint db
@@ -353,5 +376,45 @@ export class TnpDB {
   }
   //#endregion
 
+  //#region daemon
+  get daemonInstance() {
+    return new Promise<DbDaemonController>(async resolve => {
+      const { controllers } = await Morphi.init({
+        host: `http://localhost:${await this.getDaemonPort()}`,
+        onlyForBackendRemoteServerAccess: true,
+        controllers: [DbDaemonController]
+      })
+      resolve(_.first(controllers) as any);
+    })
+  }
+
+  async DaemonTest() {
+    const d = await this.daemonInstance;
+    d.allprojects() // @LAST
+  }
+
+  async getDaemonPort(): Promise<number> {
+    const portsManger = (await this.__portsCtrl.manager);
+    let ins: PortInstance;
+    while (true) {
+      const instances = portsManger.getReserverFor({ name: DAEMON_PORT_NAME });
+      if (instances.length !== 1) {
+        Helpers.info(`[tnp-db] Incorrect ports number for daemon "${instances.length}"... db is killing ports`);
+        for (let index = 0; index < instances.length; index++) {
+          const daemoIns = instances[index];
+          for (let j = 0; j < daemoIns.array.length; j++) {
+            const portToKill = daemoIns.array[j];
+            Helpers.killProcessByPort(portToKill);
+          }
+        }
+        await TnpDB.restartDaemon(this);
+        continue;
+      }
+      ins = _.first(instances);
+      break;
+    }
+    return ins.id as number;
+  }
+  //#endregion
 
 }

@@ -10,6 +10,16 @@ export type PortIdType = number | number[] | Models.other.Range;
 @CLASS.NAME('PortInstance')
 export class PortInstance extends DBBaseEntity {
 
+  static clone(p: PortInstance): PortInstance {
+    if (_.isObject(p.id) && !_.isArray(p.id)) {
+      return new PortInstance(Models.other.Range.clone(p.id as any), p.reservedFor);
+    }
+    if (_.isArray(p.id)) {
+      return new PortInstance(_.cloneDeep(p.id), p.reservedFor);
+    }
+    return new PortInstance(p.id, p.reservedFor);
+  }
+
   constructor(
     public id?: PortIdType,
     public reservedFor?: Project | Models.system.SystemService) {
@@ -45,6 +55,23 @@ export class PortInstance extends DBBaseEntity {
 
   get isFree() {
     return !this.reservedFor;
+  }
+
+  get array(): number[] {
+    let allPorts = [];
+    if (_.isNumber(this.id)) {
+      allPorts.push(this.id)
+    }
+    if (_.isArray(this.id)) {
+      allPorts = allPorts.concat(this.id);
+    }
+
+    if (!_.isArray(this.id) && _.isObject(this.id)) {
+      const range = this.id as Models.other.Range;
+      allPorts = allPorts.concat(range.array);
+    }
+
+    return allPorts;
   }
 
   get size() {
