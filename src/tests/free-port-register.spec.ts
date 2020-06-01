@@ -12,8 +12,8 @@ describe('Free port registration', () => {
 
     (() => {
       let s = new PortsSet([
-        new PortInstance(Models.other.Range.from(3000).to(5000))
-      ])
+        new PortInstance(Models.other.Range.from(3000).to(5000)),
+      ], async (a) => a)
 
       s.registerOnFreePort({
         name: 'test-service'

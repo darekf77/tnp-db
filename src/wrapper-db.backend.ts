@@ -141,7 +141,11 @@ export class TnpDB {
       output: false,
       silence: true
     }).sync();
-    Helpers.info(`Start OK.. project ${proj.genericName} is running in background`);
+    Helpers.info(`Start OK.. project ${proj.name} is running in background:
+
+    link: http://localhost:${deamonPort}
+
+    `);
   }
 
   //#endregion
@@ -342,6 +346,7 @@ export class TnpDB {
   }
 
   public async getBuilds(): Promise<BuildInstance[]> {
+    await this.__buildsCtrl.update();
     return await this.crud.getAll(BuildInstance);
   }
 
@@ -377,40 +382,69 @@ export class TnpDB {
   //#endregion
 
   //#region daemon
+  private _daemonInstance: {
+    controllers: Morphi.Base.Controller<any>[];
+    host: string;
+  };
   get daemonInstance() {
-    return new Promise<DbDaemonController>(async resolve => {
-      // const { controllers } = await Morphi.init({
-      //   host: `http://localhost:${await this.getDaemonPort()}`,
-      //   // onlyForBackendRemoteServerAccess: true,
-      //   controllers: [DbDaemonController]
-      // })
-      // resolve(_.first(controllers) as any);
+    return new Promise<DbDaemonController>(async (resolve) => {
+      const daemonPort = await this.getDaemonPort();
+      const host = `http://localhost:${daemonPort}`;
+      if (!(this._daemonInstance && this._daemonInstance.host === host)) {
+        this._daemonInstance = await Morphi.init({
+          host,
+          onlyForBackendRemoteServerAccess: true,
+          controllers: [DbDaemonController]
+        }) as any;
+        this._daemonInstance.host = host;
+      }
+      const { controllers } = this._daemonInstance;
+      resolve(_.first(controllers) as any);
     })
   }
 
   async DaemonTest() {
     const d = await this.daemonInstance;
-    d.allprojects() // @LAST
+    try {
+      const data = await d.hello().received;
+      Helpers.info(data.body.text);
+    } catch (er) {
+      Helpers.error(er)
+    }
+  }
+
+  async DaemonKill() {
+    const portsManger = (await this.__portsCtrl.manager);
+    const instances = await portsManger.getReserverFor({ name: DAEMON_PORT_NAME });
+    for (let index = 0; index < instances.length; index++) {
+      const ins = instances[index];
+      await portsManger.makeFreeAndKill(ins);
+    }
   }
 
   async getDaemonPort(): Promise<number> {
     const portsManger = (await this.__portsCtrl.manager);
     let ins: PortInstance;
     while (true) {
-      const instances = portsManger.getReserverFor({ name: DAEMON_PORT_NAME });
+      const instances = await portsManger.getReserverFor({ name: DAEMON_PORT_NAME });
       if (instances.length !== 1) {
-        Helpers.info(`[tnp-db] Incorrect ports number for daemon "${instances.length}"... db is killing ports`);
-        for (let index = 0; index < instances.length; index++) {
-          const daemoIns = instances[index];
-          for (let j = 0; j < daemoIns.array.length; j++) {
-            const portToKill = daemoIns.array[j];
-            Helpers.killProcessByPort(portToKill);
-          }
-        }
+        Helpers.info(`[tnp-db] Incorrect ports number for daemon "${instances.length}"... `
+          + `db is killing ports`);
+        // for (let index = 0; index < instances.length; index++) {
+        //   const daemoIns = instances[index];
+        //   for (let j = 0; j < daemoIns.array.length; j++) {
+        //     const portToKill = daemoIns.array[j];
+        //     Helpers.killProcessByPort(portToKill);
+        //   }
+        // }
         await TnpDB.restartDaemon(this);
         continue;
       }
       ins = _.first(instances);
+      if (!_.isNumber(ins.id)) {
+        await TnpDB.restartDaemon(this);
+        continue;
+      }
       break;
     }
     return ins.id as number;

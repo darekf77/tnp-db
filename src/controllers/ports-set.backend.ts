@@ -9,7 +9,6 @@ import { CLASS } from 'typescript-class-helpers';
 @CLASS.NAME('PortsSet')
 export class PortsSet {
 
-  private ports: PortInstance[];
   private saveCallback: (ports: PortInstance[]) => void;
 
   //#region private getters
@@ -49,47 +48,18 @@ export class PortsSet {
   }
   //#endregion
 
-  constructor(ports: PortInstance[], saveCallback?: (ports: PortInstance[]) => void) {
-    if (_.isFunction(saveCallback)) {
-      this.saveCallback = saveCallback;
-    } else {
-      this.saveCallback = () => { }
+  //#region constructor
+  private ports: PortInstance[];
+  constructor(ports: PortInstance[], saveCallback: (ports: PortInstance[]) => Promise<PortInstance[]>) {
+    this.saveCallback = async (portsArgs: PortInstance[]) => {
+      portsArgs = generateAllInstaces(portsArgs);
+      portsArgs = _.sortBy(portsArgs, (o: PortInstance) => o.sortIndex);
+      portsArgs = makeSmaller(portsArgs);
+      portsArgs = _.sortBy(portsArgs, (o: PortInstance) => o.sortIndex);
+      portsArgs = await Helpers.runSyncOrAsync(saveCallback, portsArgs);
+      this.ports = portsArgs.map(c => PortInstance.clone(c));
     }
     this.ports = ports.map(c => PortInstance.clone(c));
-  }
-
-  private reorder() {
-    this.ports = _.sortBy(this.ports, (o: PortInstance) => o.sortIndex)
-  }
-
-  //#region make set smaller
-  private makeSmaller(allInstacesSingle: PortInstance[]) {
-    const ports: PortInstance[] = []
-
-    let currentProjectLocationOrSystemService: Project | Models.system.SystemService = undefined;
-    let curretnPortIns: PortInstance;
-    allInstacesSingle.forEach(ins => {
-
-      if (!_.isEqual(ins.reservedFor, currentProjectLocationOrSystemService)) {
-        currentProjectLocationOrSystemService = ins.reservedFor;
-        curretnPortIns = new PortInstance(ins.id, currentProjectLocationOrSystemService)
-        ports.push(curretnPortIns)
-      } else {
-        if (!curretnPortIns) {
-          curretnPortIns = new PortInstance(ins.id, currentProjectLocationOrSystemService)
-          ports.push(curretnPortIns)
-        } else {
-          const anotherInsAdded = curretnPortIns.addIdIfPossible(ins.id);
-
-          if (!anotherInsAdded) {
-            curretnPortIns = new PortInstance(ins.id, currentProjectLocationOrSystemService);
-            ports.push(curretnPortIns)
-          }
-        }
-      }
-
-    })
-    return ports;
   }
   //#endregion
 
@@ -104,29 +74,6 @@ export class PortsSet {
       howManyPorts = 1 + (proj.isWorkspace ? proj.children.length : 0)
     }
     return PortsSet.count.freePorts(ports) >= howManyPorts;
-  }
-  //#endregion
-
-  //#region get all ports instances
-  private generateAllInstaces(ports: PortInstance[]) {
-    let allInstaces: PortInstance[] = [];
-    ports.forEach((ins) => {
-      if (ins.size === 1) {
-        allInstaces.push(ins);
-      } else {
-        if (_.isArray(ins.id)) {
-          ins.id.forEach(idelem => {
-            allInstaces.push(new PortInstance(idelem, ins.reservedFor))
-          })
-        } else {
-          const rangeID = ins.id as Models.other.Range;
-          allInstaces = allInstaces.concat(rangeID.array.map(idelem => {
-            return new PortInstance(idelem, ins.reservedFor)
-          }));
-        }
-      }
-    });
-    return allInstaces;
   }
   //#endregion
 
@@ -162,9 +109,8 @@ export class PortsSet {
     }
 
 
-
     if (_.isUndefined(allInstaces)) {
-      allInstaces = this.generateAllInstaces(ports);
+      allInstaces = generateAllInstaces(ports);
     }
 
     // console.log('allInstaces', TnpDB.prepareToSave.ports(allInstaces))
@@ -199,40 +145,35 @@ export class PortsSet {
     }
 
     if (saveInstancesToDb) {
-
-      // console.log('allInstaces', TnpDB.prepareToSave.ports(allInstaces))
-      const ports = this.makeSmaller(allInstaces);
-      // console.log('ports', TnpDB.prepareToSave.ports(ports))
-
-      this.ports = ports;
-      await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
+      await Helpers.runSyncOrAsync(this.saveCallback, allInstaces);
     }
     return true;
   }
   //#endregion
 
-
+  //#region register service on free port
   /**
    * Get port of just registerd service
    */
   public async registerOnFreePort(service: Models.system.SystemService): Promise<number> {
-    const allInstaces = this.generateAllInstaces(this.ports);
+    const allInstaces = generateAllInstaces(this.ports);
     const portInstacnce = allInstaces.find(p => p.isFree);
     if (!portInstacnce) {
       Helpers.error(`There is not free port to register service: ${service}`, false, true);
     }
     portInstacnce.reservedFor = service;
-    const ports = this.makeSmaller(allInstaces);
-    this.ports = ports;
-    this.reorder();
-    await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
+    await Helpers.runSyncOrAsync(this.saveCallback, allInstaces);
     return portInstacnce.id as number;
   }
+  //#endregion
 
-  public getReserverFor(projectLocationOrSevice: string | Models.system.SystemService): PortInstance[] {
+  //#region get reserved port instance for service or project
+  public async getReserverFor(projectLocationOrSevice: string | Models.system.SystemService): Promise<PortInstance[]> {
     return this.ports.filter(f => _.isEqual(f.reservedFor, projectLocationOrSevice));
   }
+  //#endregion
 
+  //#region update port instance
   public async update(port: PortInstance): Promise<boolean> {
     const ins = this.ports.find(f => f.isEqual(port));
     if (!ins) {
@@ -242,23 +183,94 @@ export class PortsSet {
     await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
     return true;
   }
+  //#endregion
 
-  public async remove(port: PortInstance) {
+  //#region remove port instance
+  async remove(port: PortInstance) {
     this.ports = this.ports.filter(f => !f.isEqual(port));
     await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
   }
 
+  private async makeFree(port: PortInstance) {
+    this.ports.forEach(f => {
+      if (f.isEqual(port)) {
+        f.reservedFor = void 0;
+      }
+    });
+    await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
+  }
+
+  public async makeFreeAndKill(portIns: PortInstance) {
+    for (let j = 0; j < portIns.array.length; j++) {
+      const port = portIns.array[j];
+      await Helpers.killProcessByPort(port);
+    }
+    await this.makeFree(portIns);
+  }
+  //#endregion
+
+  //#region add port instance
   public async add(port: PortInstance): Promise<boolean> {
     if (this.ports.filter(p => p.includes(port)).length > 0) {
       return false;
     }
     this.ports.push(port);
-    this.reorder();
+
     await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
     return true;
   }
-
-
+  //#endregion
 
 }
 
+
+function makeSmaller(allInstacesSingle: PortInstance[]) {
+  const ports: PortInstance[] = []
+
+  let currentProjectLocationOrSystemService: Project | Models.system.SystemService = undefined;
+  let curretnPortIns: PortInstance;
+  allInstacesSingle.forEach(ins => {
+
+    if (!_.isEqual(ins.reservedFor, currentProjectLocationOrSystemService)) {
+      currentProjectLocationOrSystemService = ins.reservedFor;
+      curretnPortIns = new PortInstance(ins.id, currentProjectLocationOrSystemService)
+      ports.push(curretnPortIns)
+    } else {
+      if (!curretnPortIns) {
+        curretnPortIns = new PortInstance(ins.id, currentProjectLocationOrSystemService)
+        ports.push(curretnPortIns)
+      } else {
+        const anotherInsAdded = curretnPortIns.addIdIfPossible(ins.id);
+
+        if (!anotherInsAdded) {
+          curretnPortIns = new PortInstance(ins.id, currentProjectLocationOrSystemService);
+          ports.push(curretnPortIns)
+        }
+      }
+    }
+
+  })
+  return ports;
+}
+
+
+function generateAllInstaces(ports: PortInstance[]) {
+  let allInstaces: PortInstance[] = [];
+  ports.forEach((ins) => {
+    if (ins.size === 1) {
+      allInstaces.push(ins);
+    } else {
+      if (_.isArray(ins.id)) {
+        ins.id.forEach(idelem => {
+          allInstaces.push(new PortInstance(idelem, ins.reservedFor))
+        })
+      } else {
+        const rangeID = ins.id as Models.other.Range;
+        allInstaces = allInstaces.concat(rangeID.array.map(idelem => {
+          return new PortInstance(idelem, ins.reservedFor)
+        }));
+      }
+    }
+  });
+  return allInstaces;
+}

@@ -18,8 +18,9 @@ describe('Ports set tests', () => {
   it('should call save after each add', async function () {
 
     let saveCallCounter = 0;
-    let s = new PortsSet([], () => {
+    let s = new PortsSet([], async (a) => {
       saveCallCounter++;
+      return a;
     })
 
     await s.add(new PortInstance(Models.other.Range.from(3000).to(4000)))
@@ -36,7 +37,7 @@ describe('Ports set tests', () => {
 
     let s = new PortsSet([
       new PortInstance([2000, 2001])
-    ])
+    ], async (a) => a)
 
     expect(s.numOfFreePortsAvailable).to.be.eq(2)
     await s.update(new PortInstance([2000, 2001], new Models.system.SystemService('test')))
@@ -64,13 +65,13 @@ describe('Ports set tests', () => {
     let s = new PortsSet([
       new PortInstance([2000, 2001]),
       ...baselinePorts
-    ])
+    ], async (a) => a)
 
-    expect(_.isEqual(s.getReserverFor(baseline), baselinePorts)).to.be.true;
+    expect(_.isEqual(await s.getReserverFor(baseline), baselinePorts)).to.be.true;
 
     baselinePorts = []
 
-    expect(_.isEqual(s.getReserverFor(baseline), baselinePorts)).to.be.false;
+    expect(_.isEqual(await s.getReserverFor(baseline), baselinePorts)).to.be.false;
 
   });
 
@@ -81,7 +82,7 @@ describe('Ports set tests', () => {
       new PortInstance(4000, baseline),
       new PortInstance(6000),
       new PortInstance(Models.other.Range.from(7000).to(7005))
-    ])
+    ], async (a) => a)
 
     expect(await s.reserveFreePortsFor(tnp)).to.be.true;
 
@@ -93,7 +94,7 @@ describe('Ports set tests', () => {
       new PortInstance(4000),
       new PortInstance(6000),
       new PortInstance(Models.other.Range.from(7000).to(7010))
-    ])
+    ], async (a) => a)
 
     expect(await s.reserveFreePortsFor(baseline)).to.be.true;
     expect(s.numOfTakenPortsAvailable).to.be.eq(baseline.children.length + 1)
@@ -104,7 +105,7 @@ describe('Ports set tests', () => {
 
     let s = new PortsSet([
       new PortInstance(Models.other.Range.from(7000).to(baseline.children.length))
-    ])
+    ], async (a) => a)
 
     expect(await s.reserveFreePortsFor(baseline)).to.be.false;
 

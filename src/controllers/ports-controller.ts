@@ -14,13 +14,17 @@ export class PortsController extends BaseController {
   }
 
 
+  private _manager: PortsSet;
   public get manager() {
     return new Promise<PortsSet>(async (resolve) => {
-      const instances = await this.crud.getAll(PortInstance);
-      const result = new PortsSet(instances as any, async (newPorts) => {
-        await this.crud.setBulk(newPorts, PortInstance);
-      });
-      resolve(result);
+      if (!this._manager) {
+        const instances = await this.crud.getAll(PortInstance);
+        this._manager = new PortsSet(instances as any, async (newPorts) => {
+          await this.crud.setBulk(newPorts, PortInstance);
+          return await this.crud.getAll(PortInstance);
+        });
+      }
+      resolve(this._manager);
     });
   }
 

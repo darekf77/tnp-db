@@ -23,24 +23,7 @@ export class BuildsController extends BaseController {
    */
   async update() {
     const ps: Models.system.PsListInfo[] = await psList();
-    const all = await this.crud.getAll<BuildInstance>(BuildInstance);
-    // console.log('[UPDATE BUILDS] BEFORE FILTER', all.map(c => c.pid))
-    const filteredBuilds = all.filter(b => {
-
-      const exists = (ps.filter(p => {
-        const pidEqual = (p.pid === b.pid);
-        const isNodeCommand = (p.cmd.search('node') !== -1);
-        const isFrameworkCommand = (p.cmd.search(config.frameworkName) !== -1);
-        return pidEqual && isFrameworkCommand && isNodeCommand;
-      }).length > 0)
-
-      return exists;
-    });
-
-
-
-    // console.log('[UPDATE BUILDS] AFTER FILTER', filteredBuilds.map(c => c.pid))
-    // process.exit(0)
+    const filteredBuilds = await this.getExisted(ps);
     await this.crud.setBulk(filteredBuilds, BuildInstance);
   }
 
@@ -79,11 +62,7 @@ export class BuildsController extends BaseController {
   }
 
   async addExisted() {
-    const ps: Models.system.PsListInfo[] = await psList();
-    // console.log(ps.filter(p => p.cmd.split(' ').filter(p => p.endsWith(`/bin/tnp`)).length > 0));
-
-    const builds = await this.getExisted(ps);
-    await this.crud.setBulk(builds, BuildInstance);
+    await this.update();
   }
 
   async killInstancesFrom(projects: Project[]) {
@@ -173,6 +152,7 @@ export class BuildsController extends BaseController {
   }
 
   async getExistedByPid(pid: number) {
+    await this.update();
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     return all.find(a => a.pid === pid);
   }
