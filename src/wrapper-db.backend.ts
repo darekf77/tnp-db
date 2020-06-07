@@ -390,11 +390,15 @@ export class TnpDB {
     return new Promise<DbDaemonController>(async (resolve) => {
       const daemonPort = await this.getDaemonPort();
       const host = `http://localhost:${daemonPort}`;
+      const entities = [
+        CLASS.getBy('Project')
+      ];
       if (!(this._daemonInstance && this._daemonInstance.host === host)) {
         this._daemonInstance = await Morphi.init({
           host,
           onlyForBackendRemoteServerAccess: true,
-          controllers: [DbDaemonController]
+          controllers: [DbDaemonController],
+          entities: entities
         }) as any;
         this._daemonInstance.host = host;
       }

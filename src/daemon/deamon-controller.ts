@@ -1,6 +1,7 @@
 import { Morphi } from 'morphi';
 //#region @backend
 import { TnpDB } from '../wrapper-db.backend';
+import { Project } from 'tnp-helpers';
 //#endregion
 
 @Morphi.Controller()
@@ -16,7 +17,9 @@ export class DbDaemonController {
     //#region @backendFunc
     return async (req, res) => {
       const db = TnpDB.InstanceSync;
-      const projects = (await db.getProjects()).map(p => p.locationOfProject);
+      const projects = (await db.getProjects()).map(p => {
+        return Project.From(p.locationOfProject);
+      });
       return projects;
     }
     //#endregion
