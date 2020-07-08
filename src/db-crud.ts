@@ -1,6 +1,7 @@
 //#region @backend
 import * as _ from 'lodash';
 import * as fse from 'fs-extra';
+import { BehaviorSubject } from 'rxjs';
 import { CLASS } from 'typescript-class-helpers'
 
 import { DBBaseEntity } from './entites/base-entity';
@@ -20,13 +21,22 @@ export class DbCrud {
 
   }
 
-  async clearDBandReinit(defaultValues: Object) {
+  private listenters = {} as any;
+  onEntityChange(classFN: Function): BehaviorSubject<void> {
+    return this.listenters[getEntityNameByClassFN(classFN)];
+  }
+
+  async clearDBandReinit(defaultValues: { [entityName: string]: any[]; }) {
+    Object.keys(defaultValues).forEach((entityName) => {
+      this.listenters[entityName] = new BehaviorSubject(void 0);
+    });
+
     this.db.defaults(defaultValues)
       .write()
   }
 
   async getAll<T extends DBBaseEntity>(classFN: Function): Promise<T[]> {
-    const entityName: EntityNames = this.getEntityNameByClassFN(classFN);
+    const entityName: EntityNames = getEntityNameByClassFN(classFN);
     // console.log(`${CLASS.getName(classFN)} entity name from object`, entityName);
     // process.exit(0)
     this.db.read();
@@ -92,7 +102,7 @@ export class DbCrud {
     const className = _.isFunction(classFN) ? CLASS.getName(classFN) :
       CLASS.getNameFromObject(_.first(entites))
 
-    const entityName = this.getEntityNameByClassName(className)
+    const entityName = getEntityNameByClassName(className)
     const json = entites.map(c => this.preprareEntityForSave(c));
     // console.log(`[setBulk] set json for entity ${entityName}`, json)
     this.db.read();
@@ -100,13 +110,6 @@ export class DbCrud {
     return true;
   }
 
-  private getEntityNameByClassFN(classFN: Function) {
-    return this.getEntityNameByClassName(CLASS.getName(classFN))
-  }
-
-  private getEntityNameByClassName(className: string): EntityNames {
-    return className === 'Project' ? 'projects' : DBBaseEntity.entityNameFromClassName(className) as EntityNames;
-  }
 
   private async afterRetrive<T = any>(value: any, entityName: EntityNames): Promise<DBBaseEntity> {
 
@@ -213,6 +216,14 @@ export class DbCrud {
     return entity;
   }
 
+}
+
+function getEntityNameByClassFN(classFN: Function) {
+  return getEntityNameByClassName(CLASS.getName(classFN))
+}
+
+function getEntityNameByClassName(className: string): EntityNames {
+  return className === 'Project' ? 'projects' : DBBaseEntity.entityNameFromClassName(className) as EntityNames;
 }
 
 //#endregion
