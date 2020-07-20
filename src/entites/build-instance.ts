@@ -29,7 +29,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
     this.data = data;
   }
 
-  async prepare() {
+  async prepare(reason: string) {
     const data = this.data;
 
     // console.log('PROJECT', !!Project)
@@ -41,16 +41,16 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
 
     this.cmd = CommandInstance.fixedCommand(data.cmd);
     if (this.cmd) {
-      this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
+      this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location), void 0, reason);
       this.cmd = await BuildOptions.exportToCMD(this._buildOptions);
     } else {
       if (_.isObject(data.buildOptions)) {
         this.cmd = await BuildOptions.exportToCMD(data.buildOptions);
-        this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
+        this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location), void 0, reason);
         this.cmd = await BuildOptions.exportToCMD(this._buildOptions);
       } else {
         this.cmd = '';
-        this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
+        this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location), void 0, reason);
       }
     }
   }
@@ -65,7 +65,7 @@ export class BuildInstance extends DBBaseEntity implements IBuildInstance {
 
   async updateCmdFrom(buildOptions: BuildOptions) {
     this.cmd = await BuildOptions.exportToCMD(buildOptions);
-    this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location));
+    this._buildOptions = await BuildOptions.from(this.cmd, Project.From(this.location), void 0, 'update from cmd');
   }
 
   private _buildOptions: BuildOptions;

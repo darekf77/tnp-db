@@ -43,13 +43,21 @@ export class BuildsController extends BaseController {
 
       const project = Project.From(location)
       if (project) {
+        Helpers.log(`
+
+        location: ${Helpers.getWorkingDirOfProcess(p.pid)},
+          pid: ${p.pid},
+          cmd: ${p.cmd},
+          ppid: ${p.ppid},
+
+        `, 1);
         const b = new BuildInstance({
           location: Helpers.getWorkingDirOfProcess(p.pid),
           pid: p.pid,
           cmd: p.cmd,
           ppid: p.ppid,
         });
-        await b.prepare()
+        await b.prepare('get existed')
         // console.log('result build instance', b)
         procs[index] = b as any;
       } else {
@@ -86,7 +94,7 @@ export class BuildsController extends BaseController {
       location: project.location,
       ppid
     });
-    await currentB.prepare();
+    await currentB.prepare('db add');
     await this.crud.addIfNotExist(currentB);
   }
 
@@ -160,7 +168,7 @@ export class BuildsController extends BaseController {
   async getExistedForOptions(project: Project, buildOptions: BuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {
     await this.update();
     const currentB = new BuildInstance({ buildOptions, pid, location: project.location, ppid });
-    await currentB.prepare();
+    await currentB.prepare('getExistedForOptions');
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[]
     const existed = all.find(b => {
       return b.isEqual(currentB);

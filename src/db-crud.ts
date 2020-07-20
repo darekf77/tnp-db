@@ -116,7 +116,7 @@ export class DbCrud {
     if (entityName === 'builds') {
       const v = value as BuildInstance;
       const ins: BuildInstance = new BuildInstance(v);
-      await ins.prepare()
+      await ins.prepare('afterRetrive')
       return ins as any;
     }
     if (entityName === 'commands') {

@@ -19,8 +19,11 @@ export class BuildOptions implements Models.dev.StartForOptions {
   prod?: boolean;
   outDir?: Models.dev.BuildDir;
   watch?: boolean;
+  uglify?: boolean;
+  obscure?: boolean;
   staticBuild?: boolean;
   watchOnly?: boolean;
+  skipCopyToSelection?: boolean;
   args?: string;
   progressCallback?: (fractionValue: number) => any;
   noConsoleClear?: boolean;
@@ -77,7 +80,13 @@ export class BuildOptions implements Models.dev.StartForOptions {
           .includes(Helpers.cliTool.paramsFrom(args[i + 1]))
         );
     })
-    let prod = false, watch = false, outDir = 'dist', appBuild = false, staticBuild = false;
+    let prod = false,
+      watch = false,
+      uglify = false,
+      obscure = false,
+      outDir = 'dist',
+      appBuild = false,
+      staticBuild = false;
     if (ind >= 0) {
       const cmd = _.kebabCase(args[ind + 1]).split('-').slice(1);
       for (let index = 0; index < cmd.length; index++) {
@@ -100,8 +109,14 @@ export class BuildOptions implements Models.dev.StartForOptions {
         if (cmdPart === 'watch') {
           watch = true;
         }
+        if (cmdPart === 'uglify') {
+          uglify = true;
+        }
+        if (cmdPart === 'obscure') {
+          obscure = true;
+        }
       }
-      return { prod, watch, outDir, appBuild, staticBuild }
+      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure }
     }
     //#endregion
   }
@@ -109,8 +124,12 @@ export class BuildOptions implements Models.dev.StartForOptions {
   public static async from(
     argsString: string,
     projectCurrent: Project,
-    mainOptions?: Partial<BuildOptions>
+    mainOptions?: Partial<BuildOptions>,
+    reason?: string
   ): Promise<BuildOptions> {
+
+    Helpers.log(`[buildoptions][from] ${reason}`);
+
     //#region @backendFunc
     const split = argsString.split(' ');
     // console.log('split', split)
@@ -123,6 +142,8 @@ export class BuildOptions implements Models.dev.StartForOptions {
     // console.log('argsObj', argsObj)
     argsObj.watch = optionsToMerge.watch;
     argsObj.prod = optionsToMerge.prod;
+    argsObj.uglify = optionsToMerge.uglify;
+    argsObj.obscure = optionsToMerge.obscure;
     argsObj.outDir = optionsToMerge.outDir as any;
     argsObj.appBuild = optionsToMerge.appBuild;
     argsObj.args = argsString;
@@ -168,7 +189,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
         //     // console.log('raw arg', args)
 
         //     // console.log('path', argPath)
-        let project = (_.isString(argPath && argPath.location) ? argPath : await getProjectFromArgPath(argPath));
+        let project = (_.isString(argPath && argPath.location) ? argPath : await getProjectFromArgPath(argPath, projectCurrent));
 
         if (!project) {
           Helpers.error(`[build-options] Incorrect "copyto" values. Path doesn't contain ${config.frameworkName} type project: ${argPath}`, false, true)
@@ -195,7 +216,13 @@ export class BuildOptions implements Models.dev.StartForOptions {
       return '';
     }
     const { appBuild = false, outDir, watch = false,
-      copyto, baseHref, forClient, prod = false, staticBuild = false,
+      copyto, baseHref,
+      forClient,
+      prod = false,
+      uglify = false,
+      obscure = false,
+      staticBuild = false,
+      skipCopyToSelection = false,
       genOnlyClientCode, onlyBackend, onlyWatchNoBuild
     } = buildOptions;
     let args = [];
@@ -238,12 +265,18 @@ export class BuildOptions implements Models.dev.StartForOptions {
       args.push(`--baseHref ${baseHref}`)
     }
 
+    if(skipCopyToSelection) {
+      `--skipCopyToSelection true`
+    }
+
     return `${config.frameworkName} ` +
       `${staticBuild ? 'static:' : ''}` +
       `build:` +
       `${appBuild ? 'app' : outDir}` +
       `${prod ? ':prod' : ''}` +
       `${watch ? ':watch' : ''}` +
+      `${uglify ? ':uglify' : ''}` +
+      `${obscure ? ':obscure' : ''}` +
       ` ${args.join(' ')}`
     //#endregion
   }
@@ -256,12 +289,19 @@ export class BuildOptions implements Models.dev.StartForOptions {
 }
 
 //#region @backend
-async function getProjectFromArgPath(argPath: string | object) {
+async function getProjectFromArgPath(argPath: string | object, projectCurrent?: Project) {
   if (_.isObject(argPath)) {
     argPath = (argPath as any).location;
   }
 
-  let project = Project.nearestTo<Project>(argPath as string);
+  let project: Project;
+
+  if (_.isString(argPath) && !path.isAbsolute(argPath) && projectCurrent) {
+    project = Project.From(path.join(projectCurrent.location, argPath));
+  }
+  if (!project) {
+    project = Project.nearestTo<Project>(argPath as string);
+  }
   if (!project) {
     const dbProjectsToCheck: Project[] = (await (await TnpDB.Instance(config.dbLocation)).getProjects()).map(p => p.project);
 
