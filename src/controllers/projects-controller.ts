@@ -2,6 +2,7 @@
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fse from 'fs-extra';
+import * as os from 'os';
 import { DbCrud } from '../db-crud';
 import { BaseController } from './base-controlller';
 import { ProjectInstance } from '../entites';

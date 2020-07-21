@@ -21,6 +21,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
   watch?: boolean;
   uglify?: boolean;
   obscure?: boolean;
+  nodts?: boolean;
   staticBuild?: boolean;
   watchOnly?: boolean;
   skipCopyToSelection?: boolean;
@@ -84,6 +85,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       watch = false,
       uglify = false,
       obscure = false,
+      nodts = false,
       outDir = 'dist',
       appBuild = false,
       staticBuild = false;
@@ -115,8 +117,11 @@ export class BuildOptions implements Models.dev.StartForOptions {
         if (cmdPart === 'obscure') {
           obscure = true;
         }
+        if (cmdPart === 'nodts') {
+          nodts = true;
+        }
       }
-      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure }
+      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts }
     }
     //#endregion
   }
@@ -144,6 +149,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     argsObj.prod = optionsToMerge.prod;
     argsObj.uglify = optionsToMerge.uglify;
     argsObj.obscure = optionsToMerge.obscure;
+    argsObj.nodts = optionsToMerge.nodts;
     argsObj.outDir = optionsToMerge.outDir as any;
     argsObj.appBuild = optionsToMerge.appBuild;
     argsObj.args = argsString;
@@ -221,6 +227,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       prod = false,
       uglify = false,
       obscure = false,
+      nodts = false,
       staticBuild = false,
       skipCopyToSelection = false,
       genOnlyClientCode, onlyBackend, onlyWatchNoBuild
@@ -265,7 +272,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       args.push(`--baseHref ${baseHref}`)
     }
 
-    if(skipCopyToSelection) {
+    if (skipCopyToSelection) {
       `--skipCopyToSelection true`
     }
 
@@ -277,6 +284,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       `${watch ? ':watch' : ''}` +
       `${uglify ? ':uglify' : ''}` +
       `${obscure ? ':obscure' : ''}` +
+      `${nodts ? ':nodts' : ''}` +
       ` ${args.join(' ')}`
     //#endregion
   }
