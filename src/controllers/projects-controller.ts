@@ -24,7 +24,7 @@ export class ProjectsController extends BaseController {
   private recognized: ProjectInstance[] = []
   async addExisted() {
     if(global['frameworkName'] === 'firedev') {
-      Helpers.log(`[tnp-db] For now dont discover project in tnp db`)
+      Helpers.log(`[tnp-db] For now dont discover project in tnp db`);
       return;
     }
     await this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '..')))

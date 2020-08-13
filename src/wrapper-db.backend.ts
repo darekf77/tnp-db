@@ -152,6 +152,10 @@ export class TnpDB {
 
   //#region reinint db
   public async reinitDB() {
+    if (global['frameworkName'] === 'firedev') {
+      const pathToFiredevMorphi = path.join(path.dirname(this.location), 'morphi');
+      Helpers.removeFolderIfExists(pathToFiredevMorphi);
+    }
     Helpers.log(`[db][reinit] writing default values`);
     await this.crud.clearDBandReinit({
       projects: [],
@@ -172,7 +176,12 @@ export class TnpDB {
     Helpers.log(`[db][reinit] adding existed builds`);
     await this.__buildsCtrl.addExisted()
     Helpers.log(`[db][reinit] adding existed processes`);
-    await this.__processCtrl.addExisted()
+    await this.__processCtrl.addExisted();
+
+    if (config) {
+      await config.initCoreProjects(Project, Helpers);
+    }
+
     Helpers.info(`[db][reinit] DONE`);
   }
   //#endregion
