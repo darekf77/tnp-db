@@ -12,7 +12,7 @@ if (!global['ENV']) {
 }
 const config = global['ENV'].config as any;
 import { CLASS } from 'typescript-class-helpers';
-import { Project } from 'tnp-helpers';
+import { Project, Helpers } from 'tnp-helpers';
 
 @CLASS.NAME('ProjectsController')
 export class ProjectsController extends BaseController {
@@ -23,7 +23,10 @@ export class ProjectsController extends BaseController {
 
   private recognized: ProjectInstance[] = []
   async addExisted() {
-
+    if(global['frameworkName'] === 'firedev') {
+      Helpers.log(`[tnp-db] For now dont discover project in tnp db`)
+      return;
+    }
     await this.discoverProjectsInLocation(path.resolve(path.join(Project.Tnp.location, '..')))
     if (global.testMode) {
       await this.discoverProjectsInLocation(path.resolve(config.pathes.tnp_tests_context), true)

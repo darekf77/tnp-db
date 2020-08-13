@@ -9,6 +9,10 @@ import { CommandInstance } from '../entites/command-instance';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
 import { BuildOptions } from '../build-options';
+if (!global['ENV']) {
+  global['ENV'] = {};
+}
+const config = global['ENV'].config as any;
 
 
 @CLASS.NAME('CommandsController')
@@ -44,9 +48,8 @@ export class CommandsController extends BaseController {
 
   async runCommand(cmd: CommandInstance) {
     // console.log('global', global.start)
-
     if (cmd && _.isString(cmd.command) && cmd.command.trim() !== '') {
-      await global.start(cmd.command.split(' '), void 0);
+      await global.start(cmd.command.split(' '), config['frameworkName'], global['frameworkMode']);
     } else {
       Helpers.error(`Last ${cmd.isBuildCommand ? 'build' : ''} command for location: ${cmd.location} doen't exists`, false, true);
     }
@@ -55,8 +58,8 @@ export class CommandsController extends BaseController {
   async runLastCommandIn(location: string) {
     const commands = await this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
     const cmd = commands.find(c => c.location === location)
-    if (cmd) {
-      await global.start(cmd.command.split(' '), void 0);
+    if (cmd && _.isString(cmd.command) && cmd.command.trim() !== '') {
+      await global.start(cmd.command.split(' '), config['frameworkName'], global['frameworkMode']);
     } else {
       Helpers.error(`Last command for location: ${cmd.location} doen't exists`, false, true);
     }

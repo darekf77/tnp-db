@@ -85,7 +85,7 @@ export class TnpDB {
 
   //#region constructor/init
   constructor(private location: string) {
-    this.db
+
   }
   public async init(recreate = true) {
     // Helpers.log('[db] recreate db instance');
