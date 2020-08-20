@@ -9,7 +9,7 @@ export class DbDaemonController {
 
   @Morphi.Http.GET()
   hello(): Morphi.Response {
-    return async (req, res) => 'hello'
+    return async (req, res) => 'hello';
   }
 
   @Morphi.Http.GET()
