@@ -14,7 +14,7 @@ if (!global['ENV']) {
 const config = global['ENV'].config as any;
 
 export async function $LAST(args: string) {
-  const db = await TnpDB.Instance(config.dbLocation);
+  const db = await TnpDB.Instance();
   const last = await db.lastCommandFrom(process.cwd(), false);
   // console.log('last commadn to run', last)
   await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd()));
@@ -23,7 +23,7 @@ export async function $LAST(args: string) {
 
 export async function $LAST_BUILD(args: string) {
 
-  const db = await TnpDB.Instance(config.dbLocation);
+  const db = await TnpDB.Instance();
   const last = await db.lastCommandFrom(process.cwd(), true);
   // console.log('last commadn to run', last)
   await db.runCommand(!!last ? last : new CommandInstance(undefined, process.cwd(), true));
@@ -33,7 +33,7 @@ export async function $LAST_BUILD(args: string) {
 export async function $SHOW_LAST(args: string) {
   // console.log(args)
   global.muteMessages = true;
-  const db = await TnpDB.Instance(config.dbLocation);
+  const db = await TnpDB.Instance();
   const last = await db.lastCommandFrom(process.cwd(), true);
   global.muteMessages = false;
   process.stdout.write(last.command);
@@ -43,7 +43,7 @@ export async function $SHOW_LAST(args: string) {
 }
 
 const $DB = async (args: string) => {
-  const db = await TnpDB.Instance(config.dbLocation);
+  const db = await TnpDB.Instance();
 
   if (args.trim() === 'reinit') {
     await db.init()
@@ -57,13 +57,13 @@ const $DB = async (args: string) => {
 
 
 async function $MONIT_TOP() {
-  const db = await TnpDB.Instance(config.dbLocation);
+  const db = await TnpDB.Instance();
   await (new DBMonitTop(db)).start();
 
 }
 
 async function $MONIT_COMMANDS() {
-  const db = await TnpDB.Instance(config.dbLocation);
+  const db = await TnpDB.Instance();
   await (new DBMonitCommands(db)).start();
 
 }
@@ -78,7 +78,7 @@ async function $EXISTS(args: string) {
 }
 
 async function $PROC_MONITOR() {
-  const db = await TnpDB.Instance(config.dbLocation);
+  const db = await TnpDB.Instance();
   await (new DBProcMonitor(db)).start();
 
 }

@@ -1,6 +1,7 @@
 //#region imports / exports
 import * as low from 'lowdb';
 import * as fse from 'fs-extra';
+import * as os from 'os';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as FileSync from 'lowdb/adapters/FileSync'
@@ -44,8 +45,23 @@ export class TnpDB {
     }
     return this._instance;
   }
-  public static Instance(dbLocation: string) {
-    return this.instance(dbLocation)
+
+  private static get dbLocation() {
+    let dbFileName = 'db.json';
+    if (global.testMode) {
+      dbFileName = 'db-for-tests.json';
+    }
+    let frameworkName = 'tnp';
+    if (global['frameworkName'] === 'firedev') {
+      frameworkName = 'firedev';
+    }
+
+    const location = path.join(os.homedir(), frameworkName, dbFileName);
+    return location;
+  }
+
+  public static Instance(dbLocation?: string) {
+    return this.instance(TnpDB.dbLocation)
   }
 
   public static get InstanceSync() {
@@ -65,6 +81,10 @@ export class TnpDB {
   private __processCtrl: ProcessController;
   private _adapter;
   private db: any;
+
+  public get portsManaber() {
+    return this.__portsCtrl.manager;
+  }
 
   public async rawGet<T = any>(keyOrEntityName: string) {
     if (!this.db) {

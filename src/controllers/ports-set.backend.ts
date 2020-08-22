@@ -155,14 +155,20 @@ export class PortsSet {
   /**
    * Get port of just registerd service
    */
-  public async registerOnFreePort(service: Models.system.SystemService): Promise<number> {
+  public async registerOnFreePort(service: Models.system.SystemService, killAlreadyRegisterd = false): Promise<number> {
     const allInstaces = generateAllInstaces(this.ports);
-    const portInstacnce = allInstaces.find(p => p.isFree);
+    let portInstacnce = allInstaces.find(p => p.reservedFor?.name === service.name);
     if (!portInstacnce) {
-      Helpers.error(`There is not free port to register service: ${service}`, false, true);
+      portInstacnce = allInstaces.find(p => p.isFree);
+      if (!portInstacnce) {
+        Helpers.error(`There is not free port to register service: ${service}`, false, true);
+      }
     }
     portInstacnce.reservedFor = service;
     await Helpers.runSyncOrAsync(this.saveCallback, allInstaces);
+    if (killAlreadyRegisterd) {
+      await Helpers.killProcessByPort(Number(portInstacnce.id));
+    }
     return portInstacnce.id as number;
   }
   //#endregion
