@@ -21,15 +21,15 @@ export class DbCrud {
 
   }
 
-  private listenters = {} as any;
-  onEntityChange(classFN: Function): BehaviorSubject<void> {
-    return this.listenters[getEntityNameByClassFN(classFN)];
-  }
+  // private listenters = {} as any;
+  // onEntityChange(classFN: Function): BehaviorSubject<void> {
+  //   return this.listenters[getEntityNameByClassFN(classFN)];
+  // }
 
   async clearDBandReinit(defaultValues: { [entityName: string]: any[]; }) {
-    Object.keys(defaultValues).forEach((entityName) => {
-      this.listenters[entityName] = new BehaviorSubject(void 0);
-    });
+    // Object.keys(defaultValues).forEach((entityName) => {
+    //   this.listenters[entityName] = new BehaviorSubject(void 0);
+    // });
 
     this.db.defaults(defaultValues)
       .write()
