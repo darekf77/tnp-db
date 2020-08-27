@@ -12,13 +12,29 @@ import {
 } from './entites';
 import { Helpers, Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';
-
+import { WorkersFactor } from 'background-worker-process';
+import { DbDaemonController } from './daemon/deamon-controller';
+import type { TnpDB } from './wrapper-db.backend';
 
 export class DbCrud {
 
 
-  constructor(private db: any) {
+  daemonMode = false;
+  worker: DbDaemonController;
+  constructor(private db: any, private dbWrapper: TnpDB) {
 
+  }
+
+  async initDeamon() {
+    const entities = [];
+    const portsManager = await this.dbWrapper.portsManaber;
+    const portForDaemon = await portsManager.registerOnFreePort({
+      name: CLASS.getName(DbDaemonController)
+    });
+    Helpers.info(`TNPDB deamon inited on port: ${portForDaemon}`)
+    const res = await WorkersFactor.create<DbDaemonController>(DbDaemonController, entities, portForDaemon);
+    this.worker = res.instance;
+    //@LAST
   }
 
   // private listenters = {} as any;

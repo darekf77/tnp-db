@@ -2,10 +2,25 @@ import { Morphi } from 'morphi';
 //#region @backend
 import { TnpDB } from '../wrapper-db.backend';
 import { Project } from 'tnp-helpers';
+import { BootstrapWorker } from 'background-worker-process';
+import { WorkerProcessClass } from 'background-worker-process';
 //#endregion
 
-@Morphi.Controller()
-export class DbDaemonController {
+
+@Morphi.Controller({
+  className: 'DbDaemonController'
+})
+export class DbDaemonController
+  //#region @backend
+  extends WorkerProcessClass
+//#endregion
+{
+
+  //#region @backend
+  get filename() {
+    return __filename;
+  }
+  //#endregion
 
   @Morphi.Http.GET()
   hello(): Morphi.Response {
@@ -26,3 +41,7 @@ export class DbDaemonController {
   }
 
 }
+
+//#region @backend
+export default BootstrapWorker.bootstrap(DbDaemonController);
+//#endregion

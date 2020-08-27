@@ -114,7 +114,7 @@ export class TnpDB {
     const result = low(this._adapter);
     this.db = result as any;
 
-    this.crud = new DbCrud(this.db);
+    this.crud = new DbCrud(this.db, this);
     // Helpers.log('[db] Writed default values');
     this.__projectsCtrl = new ProjectsController(this.crud);
     this.__domainsCtrl = new DomainsController(this.crud);

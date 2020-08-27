@@ -14,7 +14,7 @@
       "ignoreDepsPattern": [],
       "includeAsDev": [],
       "includeOnly": [
-        "tnp-helpers"
+        "background-worker-process"
       ],
       "dependencies": {},
       "linkedFolders": []
