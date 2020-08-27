@@ -167,6 +167,7 @@ export class PortsSet {
     portInstacnce.reservedFor = service;
     await Helpers.runSyncOrAsync(this.saveCallback, allInstaces);
     if (killAlreadyRegisterd) {
+      Helpers.info(`[tnp-db][registerOnFreePort] killing running services - port: ${portInstacnce.id}`)
       await Helpers.killProcessByPort(Number(portInstacnce.id));
     }
     return portInstacnce.id as number;
