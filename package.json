@@ -45,7 +45,7 @@
   },
   "homepage": "https://github.com/darekf77/tnp-db#readme",
   "dependencies": {
-    "tnp-helpers": "0.0.6"
+    "background-worker-process": "0.0.5"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.901.3",
@@ -113,7 +113,6 @@
     "angular-tree-component": "^7.0.0",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "background-worker-process": "0.0.5",
     "bcryptjs": "2.4.3",
     "body-parser": "^1.18.2",
     "bootstrap": "4.3.1",
@@ -227,6 +226,7 @@
     "systeminformation": "^3.45.7",
     "task.js": "^0.1.5",
     "tnp-db": "0.0.8",
+    "tnp-helpers": "0.0.6",
     "tnp-models": "0.0.7",
     "ts-loader": "7.0.4",
     "ts-node": "~8.3.0",
