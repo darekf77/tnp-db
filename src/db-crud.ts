@@ -15,12 +15,13 @@ import { Models } from 'tnp-models';
 import { WorkersFactor } from 'background-worker-process';
 import { DbDaemonController } from './daemon/deamon-controller';
 import type { TnpDB } from './wrapper-db.backend';
+import { WorkerProcessClass } from 'background-worker-process';
 
 export class DbCrud {
 
 
-  daemonMode = false;
-  worker: DbDaemonController;
+  protected daemonMode = false;
+  protected worker: DbDaemonController;
   constructor(private db: any, private dbWrapper: TnpDB) {
 
   }
@@ -43,6 +44,9 @@ export class DbCrud {
   // }
 
   async clearDBandReinit(defaultValues: { [entityName: string]: any[]; }) {
+    if (this.daemonMode) {
+      return await this.worker.clearDBandReinit(defaultValues);
+    }
     // Object.keys(defaultValues).forEach((entityName) => {
     //   this.listenters[entityName] = new BehaviorSubject(void 0);
     // });
@@ -52,6 +56,9 @@ export class DbCrud {
   }
 
   async getAll<T extends DBBaseEntity>(classFN: Function): Promise<T[]> {
+    if (this.daemonMode) {
+      return await this.worker.getAll(classFN);
+    }
     const entityName: EntityNames = getEntityNameByClassFN(classFN);
     // console.log(`${CLASS.getName(classFN)} entity name from object`, entityName);
     // process.exit(0)
@@ -69,6 +76,9 @@ export class DbCrud {
   }
 
   async addIfNotExist(entity: DBBaseEntity): Promise<boolean> {
+    if (this.daemonMode) {
+      return await this.worker.addIfNotExist(entity);
+    }
     const classFN = CLASS.getFromObject(entity)
     // console.log(`[addIfNotExist] add if not exist entity: ${CLASS.getNameFromObject(entity)}`)
     const all = await this.getAll(CLASS.getFromObject(entity))
@@ -85,6 +95,9 @@ export class DbCrud {
   }
 
   async remove(entity: DBBaseEntity): Promise<boolean> {
+    if (this.daemonMode) {
+      return await this.worker.remove(entity);
+    }
     const classFN = CLASS.getFromObject(entity)
     const all = await this.getAll(CLASS.getFromObject(entity))
     const filtered = all.filter(f => !f.isEqual(entity))
@@ -96,6 +109,9 @@ export class DbCrud {
   }
 
   async set(entity: DBBaseEntity) {
+    if (this.daemonMode) {
+      return await this.worker.set(entity);
+    }
     const classFN = CLASS.getFromObject(entity)
 
     const all = await this.getAll(CLASS.getFromObject(entity))
@@ -109,6 +125,9 @@ export class DbCrud {
   }
 
   async setBulk(entites: DBBaseEntity[], classFN: Function): Promise<boolean> {
+    if (this.daemonMode) {
+      return await this.worker.setBulk(entites, classFN);
+    }
     if (!_.isArray(entites)) {
       Helpers.error(`[db-crud] setBuild - this is not array of entities`)
     }
@@ -127,7 +146,7 @@ export class DbCrud {
   }
 
 
-  private async afterRetrive<T = any>(value: any, entityName: EntityNames): Promise<DBBaseEntity> {
+  protected async afterRetrive<T = any>(value: any, entityName: EntityNames): Promise<DBBaseEntity> {
 
     if (entityName === 'builds') {
       const v = value as BuildInstance;
@@ -168,7 +187,7 @@ export class DbCrud {
     return value;
   }
 
-  private preprareEntityForSave(entity: DBBaseEntity) {
+  protected preprareEntityForSave(entity: DBBaseEntity) {
     // console.log(`prerpare entity, typeof ${typeof entity}`, entity)
     // console.log('typeof BuildInstance', typeof BuildInstance)
 
