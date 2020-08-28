@@ -5,42 +5,40 @@ import { Project } from 'tnp-helpers';
 import { BootstrapWorker } from 'background-worker-process';
 import { WorkerProcessClass } from 'background-worker-process';
 import type { DbCrud } from '../db-crud';
-import type { DBBaseEntity } from '../entites/base-entity';
+
+
+
+export interface IDBCrud {
+  read: () => any;
+  defaults: (any) => { write: () => any; }
+  set: (objPath: string, json: object) => { write: () => any; }
+  get: (objPath: string) => { value: () => any; }
+}
+
 //#endregion
 
 @Morphi.Controller({
   className: 'DbDaemonController'
 })
-// @ts-ignore
 export class DbDaemonController
   //#region @backend
-  extends WorkerProcessClass
-  implements DbCrud
+  extends WorkerProcessClass implements Morphi.BASE_CONTROLLER_INIT, IDBCrud
 //#endregion
 {
-//#region @backend
-  initDeamon(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  clearDBandReinit(defaultValues: { [entityName: string]: any[]; }): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  getAll<T extends DBBaseEntity<any>>(classFN: Function): Promise<T[]> {
-    throw new Error("Method not implemented.");
-  }
-  addIfNotExist(entity: DBBaseEntity<any>): Promise<boolean> {
-    throw new Error("Method not implemented.");
-  }
-  remove(entity: DBBaseEntity<any>): Promise<boolean> {
-    throw new Error("Method not implemented.");
-  }
-  set(entity: DBBaseEntity<any>): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  setBulk(entites: DBBaseEntity<any>[], classFN: Function): Promise<boolean> {
-    throw new Error("Method not implemented.");
-  }
 
+  //#region @backend
+
+  @Morphi.Http.POST()
+  copyAllToWorker(@Morphi.Http.Param.Body('data') data: any): Morphi.Response<any> {
+    return async (req, res) => {
+      console.log(data);
+      return 'huhuhuhu';
+    }
+  }
+  //#endregion
+
+
+  //#region @backend
   get filename() {
     return __filename;
   }
@@ -48,7 +46,9 @@ export class DbDaemonController
 
   @Morphi.Http.GET()
   hello(): Morphi.Response {
+    //#region @backendFunc
     return async (req, res) => 'hello';
+    //#endregion
   }
 
   @Morphi.Http.GET()
@@ -63,6 +63,11 @@ export class DbDaemonController
     }
     //#endregion
   }
+
+  async initExampleDbData() {
+
+  }
+
 
 }
 

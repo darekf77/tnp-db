@@ -131,13 +131,14 @@ export class TnpDB {
       Helpers.removeFileIfExists(config.pathes.tmp_transaction_pid_txt);
       await this.reinitDB();
       Helpers.log('[db] reinit transacton finish');
-
-
-
     }
   }
 
   //#endregion
+
+  async daemonTest() {
+    await this.crud.initDeamon();
+  }
 
   //#region reinint db
   public async reinitDB() {

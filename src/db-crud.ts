@@ -13,16 +13,16 @@ import {
 import { Helpers, Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';
 import { WorkersFactor } from 'background-worker-process';
-import { DbDaemonController } from './daemon/deamon-controller';
+import { DbDaemonController, IDBCrud } from './daemon/deamon-controller';
 import type { TnpDB } from './wrapper-db.backend';
-import { WorkerProcessClass } from 'background-worker-process';
+
 
 export class DbCrud {
 
 
   protected daemonMode = false;
   protected worker: DbDaemonController;
-  constructor(private db: any, private dbWrapper: TnpDB) {
+  constructor(private dbFile: IDBCrud, private dbWrapper: TnpDB) {
 
   }
 
@@ -31,10 +31,14 @@ export class DbCrud {
     const portsManager = await this.dbWrapper.portsManaber;
     const portForDaemon = await portsManager.registerOnFreePort({
       name: CLASS.getName(DbDaemonController)
-    });
+    }, true);
     Helpers.info(`TNPDB deamon inited on port: ${portForDaemon}`)
     const res = await WorkersFactor.create<DbDaemonController>(DbDaemonController, entities, portForDaemon);
     this.worker = res.instance;
+    // console.log((await this.worker.hello().received).body.text);
+
+    const copyRes = await this.worker.copyAllToWorker(await this.getAll(ProjectInstance)).received;
+    console.log(copyRes.body.text);
     //@LAST
   }
 
@@ -45,25 +49,26 @@ export class DbCrud {
 
   async clearDBandReinit(defaultValues: { [entityName: string]: any[]; }) {
     if (this.daemonMode) {
-      return await this.worker.clearDBandReinit(defaultValues);
+      // return await this.worker.clearDBandReinit(defaultValues);
     }
     // Object.keys(defaultValues).forEach((entityName) => {
     //   this.listenters[entityName] = new BehaviorSubject(void 0);
     // });
 
-    this.db.defaults(defaultValues)
+    this.dbFile.defaults(defaultValues)
       .write()
   }
 
   async getAll<T extends DBBaseEntity>(classFN: Function): Promise<T[]> {
-    if (this.daemonMode) {
-      return await this.worker.getAll(classFN);
-    }
     const entityName: EntityNames = getEntityNameByClassFN(classFN);
     // console.log(`${CLASS.getName(classFN)} entity name from object`, entityName);
     // process.exit(0)
-    this.db.read();
-    const res = (this.db.get(entityName).value() as T[]);
+    if (this.daemonMode) {
+      // return await this.worker.getAll(classFN);
+    } else {
+      this.dbFile.read();
+      var res = (this.dbFile.get(entityName).value() as T[]);
+    }
     // console.log(`${CLASS.getName(classFN)}, entity ${entityName}, res`, res)
     if (_.isArray(res)) {
       for (let index = 0; index < res.length; index++) {
@@ -77,7 +82,7 @@ export class DbCrud {
 
   async addIfNotExist(entity: DBBaseEntity): Promise<boolean> {
     if (this.daemonMode) {
-      return await this.worker.addIfNotExist(entity);
+      // return await this.worker.addIfNotExist(entity);
     }
     const classFN = CLASS.getFromObject(entity)
     // console.log(`[addIfNotExist] add if not exist entity: ${CLASS.getNameFromObject(entity)}`)
@@ -96,7 +101,7 @@ export class DbCrud {
 
   async remove(entity: DBBaseEntity): Promise<boolean> {
     if (this.daemonMode) {
-      return await this.worker.remove(entity);
+      // return await this.worker.remove(entity);
     }
     const classFN = CLASS.getFromObject(entity)
     const all = await this.getAll(CLASS.getFromObject(entity))
@@ -110,7 +115,7 @@ export class DbCrud {
 
   async set(entity: DBBaseEntity) {
     if (this.daemonMode) {
-      return await this.worker.set(entity);
+      // return await this.worker.set(entity);
     }
     const classFN = CLASS.getFromObject(entity)
 
@@ -126,7 +131,7 @@ export class DbCrud {
 
   async setBulk(entites: DBBaseEntity[], classFN: Function): Promise<boolean> {
     if (this.daemonMode) {
-      return await this.worker.setBulk(entites, classFN);
+      // return await this.worker.setBulk(entites, classFN);
     }
     if (!_.isArray(entites)) {
       Helpers.error(`[db-crud] setBuild - this is not array of entities`)
@@ -140,8 +145,8 @@ export class DbCrud {
     const entityName = getEntityNameByClassName(className)
     const json = entites.map(c => this.preprareEntityForSave(c));
     // console.log(`[setBulk] set json for entity ${entityName}`, json)
-    this.db.read();
-    await this.db.set(entityName, json).write()
+    this.dbFile.read();
+    await this.dbFile.set(entityName, json).write()
     return true;
   }
 
