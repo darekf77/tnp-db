@@ -1,11 +1,12 @@
 import { Morphi } from 'morphi';
 //#region @backend
 import { TnpDB } from '../wrapper-db.backend';
-import { Project } from 'tnp-helpers';
+import { Project, Helpers } from 'tnp-helpers';
 import { BootstrapWorker } from 'background-worker-process';
 import { WorkerProcessClass } from 'background-worker-process';
 import type { DbCrud } from '../db-crud';
-
+import * as _ from 'lodash';
+import * as path from 'path';
 
 
 export interface IDBCrud {
@@ -25,11 +26,31 @@ export class DbDaemonController
   extends WorkerProcessClass implements Morphi.BASE_CONTROLLER_INIT, IDBCrud
 //#endregion
 {
-  private data: any = {
+  pathToDb: string;
+  private _data: any = {
     projects: [
       'test1'
     ]
   };
+
+  get data() {
+    return this._data;
+  }
+
+  //#region @backend
+  private debounce(fn: Function) {
+    return fn;
+    // return _.debounce(fn, 1000);
+  }
+  saveToFile =
+    this.debounce(() => {
+      const pathToDb = (_.isString(this.pathToDb) && this.pathToDb.endsWith('.json')) ? this.pathToDb :
+        path.join(process.cwd(), 'tmp-worker-db.json');
+      Helpers.writeFile(pathToDb, this.data);
+      console.log(`Data update in db in ${pathToDb}`);
+    });
+  //#endregion
+
 
   @Morphi.Http.GET('/read')
   readFromWorker(): Morphi.Response<any> {
@@ -49,7 +70,10 @@ export class DbDaemonController
   defaultsWriteToDB(@Morphi.Http.Param.Body('data') data: any): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
-      this.data = data;
+      _.keys(data).forEach(key => {
+        this.data[key] = data[key];
+      });
+      this.saveToFile();
       return data;
     }
     //#endregion
@@ -71,6 +95,7 @@ export class DbDaemonController
     //#region @backendFunc
     return async (req, res) => {
       this.data[objPath] = json;
+      this.saveToFile();
       return this.data[objPath];
     }
     //#endregion
@@ -108,7 +133,10 @@ export class DbDaemonController
   @Morphi.Http.POST()
   copyAllToWorker(@Morphi.Http.Param.Body('data') data: any): Morphi.Response<any> {
     return async (req, res) => {
-      this.data = data;
+      _.keys(data).forEach(key => {
+        this.data[key] = data[key];
+      });
+      this.saveToFile();
       return this.data;
     }
   }

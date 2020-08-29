@@ -41,9 +41,13 @@ export class DbCrud {
     const res = await WorkersFactor.create<DbDaemonController>(DbDaemonController, entities, portForDaemon);
     this.worker = res.instance;
     this.daemonMode = true;
-    const projects = await this.db.get('projects').value()
+    const projects = await this.db.get('projects').value();
+    await this.db.set('testoweenitty', ['hehehehe', 'iijijij']).write()
     console.log(projects);
-    process.exit(0)
+    console.log(await this.db.get('testoweenitty').value());
+    console.log('waiting')
+    Helpers.pressKeyAndContinue();
+    // process.exit(0)
     // const copyRes = await this.worker.copyAllToWorker(await this.getAll(ProjectInstance)).received;
     // console.log(copyRes.body.text);
     //@LAST
