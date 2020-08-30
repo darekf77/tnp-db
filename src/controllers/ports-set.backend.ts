@@ -155,10 +155,21 @@ export class PortsSet {
   /**
    * Get port of just registerd service
    */
-  public async registerOnFreePort(service: Models.system.SystemService, killAlreadyRegisterd = false): Promise<number> {
+  public async registerOnFreePort(service: Models.system.SystemService, options?: Models.system.RegisterServiceOptions): Promise<number> {
+    if (!options) {
+      options = {};
+    };
+    if (_.isUndefined(options.killAlreadyRegisterd)) {
+      options.killAlreadyRegisterd = false;
+    }
+    let itWasRegisterd = false;
+    const { actionWhenAssignedPort, killAlreadyRegisterd } = options;
+
     const allInstaces = generateAllInstaces(this.ports);
     let portInstacnce = allInstaces.find(p => p.reservedFor?.name === service.name);
-    if (!portInstacnce) {
+    if (portInstacnce) {
+      itWasRegisterd = true;
+    } else {
       portInstacnce = allInstaces.find(p => p.isFree);
       if (!portInstacnce) {
         Helpers.error(`There is not free port to register service: ${service}`, false, true);
@@ -170,6 +181,7 @@ export class PortsSet {
       Helpers.info(`[tnp-db][registerOnFreePort] killing running services - port: ${portInstacnce.id}`)
       await Helpers.killProcessByPort(Number(portInstacnce.id));
     }
+    await Helpers.runSyncOrAsync(actionWhenAssignedPort, itWasRegisterd, portInstacnce.id)
     return portInstacnce.id as number;
   }
   //#endregion

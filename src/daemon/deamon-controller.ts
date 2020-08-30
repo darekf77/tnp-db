@@ -56,7 +56,7 @@ export class DbDaemonController
   readFromWorker(): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
-      return void 0;
+      return {}; // TODO
     }
     //#endregion
   }
@@ -131,8 +131,14 @@ export class DbDaemonController
   //#region @backend
 
   @Morphi.Http.POST()
-  copyAllToWorker(@Morphi.Http.Param.Body('data') data: any): Morphi.Response<any> {
+  copyAllToWorker(
+    @Morphi.Http.Param.Body('data') data: any,
+    @Morphi.Http.Param.Query('pathToDb') pathToDb: string
+  ): Morphi.Response<any> {
     return async (req, res) => {
+      if (Helpers.exists(pathToDb)) {
+        this.pathToDb = pathToDb;
+      }
       _.keys(data).forEach(key => {
         this.data[key] = data[key];
       });

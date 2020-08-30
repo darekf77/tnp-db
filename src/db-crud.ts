@@ -20,6 +20,7 @@ import type { TnpDB } from './wrapper-db.backend';
 export class DbCrud {
 
   protected daemonMode = false;
+  // protected deamonIsInited = false;
   protected worker: DbDaemonController;
   get db() {
     if (this.daemonMode) {
@@ -36,10 +37,31 @@ export class DbCrud {
     const portsManager = await this.dbWrapper.portsManaber;
     const portForDaemon = await portsManager.registerOnFreePort({
       name: CLASS.getName(DbDaemonController)
-    }, true);
-    Helpers.info(`TNPDB deamon inited on port: ${portForDaemon}`)
-    const res = await WorkersFactor.create<DbDaemonController>(DbDaemonController, entities, portForDaemon);
-    this.worker = res.instance;
+    }, {
+      killAlreadyRegisterd: true,
+      actionWhenAssignedPort: async (itWasRegisterd, registerdOnPort) => {
+
+        Helpers.info(`[tnp-db][deamon] ${itWasRegisterd ? 'already' : 'inited'} on port: ${registerdOnPort}`);
+        let res = await WorkersFactor.create<DbDaemonController>(
+          DbDaemonController,
+          entities,
+          registerdOnPort,
+          { startWorkerServiceAsChildProcess: !itWasRegisterd }
+        );
+
+        const isHealtyWorker = await res.instance.$$healty;
+        if (!isHealtyWorker) {
+          res = await WorkersFactor.create<DbDaemonController>(
+            DbDaemonController,
+            entities,
+            registerdOnPort,
+            { killByPortIfStartingServiceAsChildProcess: true }
+          );
+        }
+        this.worker = res.instance;
+      }
+    });
+    // console.log(await this.db.read())
     this.daemonMode = true;
     const projects = await this.db.get('projects').value();
     await this.db.set('testoweenitty', ['hehehehe', 'iijijij']).write()
