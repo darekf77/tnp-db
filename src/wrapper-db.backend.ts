@@ -79,10 +79,13 @@ export class TnpDB {
   private __commandsCtrl: CommandsController;
   private __processCtrl: ProcessController;
   private _adapter;
-  private db: IDBCrud;
 
   public get portsManaber() {
     return this.__portsCtrl.manager;
+  }
+
+  get db() {
+    return this.crud?.db;
   }
 
   public async rawGet<T = any>(keyOrEntityName: string) {
@@ -121,10 +124,8 @@ export class TnpDB {
       Helpers.writeFile(this.location, '');
     }
     this._adapter = new FileSync(this.location);
-    const result = low(this._adapter);
-    this.db = result as any;
 
-    this.crud = new DbCrud(this.db, this);
+    this.crud = new DbCrud(low(this._adapter) as any, this);
 
 
     // Helpers.log('[db] Writed default values');

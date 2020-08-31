@@ -19,7 +19,7 @@ import type { TnpDB } from './wrapper-db.backend';
 
 export class DbCrud {
   protected worker: DbDaemonController;
-  get db() {
+  public get db() {
     if (this.worker) {
       return this.worker;
     }
