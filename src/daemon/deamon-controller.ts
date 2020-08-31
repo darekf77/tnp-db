@@ -17,6 +17,8 @@ export interface IDBCrud {
 
 //#endregion
 
+const TEXT_AREA_CSS = 'style="width: 772px; min-height: 50px;"';
+
 @Morphi.Controller({
   className: 'DbDaemonController'
 })
@@ -28,8 +30,8 @@ export class DbDaemonController
   logArr = [];
   log(msg: string) {
     //#region @backend
-    msg = `[${moment().format()}] ${msg}`;
-    console.log(msg);
+    msg = `<strong>[${moment().format()}]</strong> ${msg}`;
+    Helpers.log(msg);
     this.logArr.push(msg);
     //#endregion
   }
@@ -53,13 +55,12 @@ export class DbDaemonController
     const pathToDb = (_.isString(this.pathToDb) && this.pathToDb.endsWith('.json')) ? this.pathToDb :
       path.join(process.cwd(), 'tmp-worker-db.json');
     Helpers.writeFile(pathToDb, this.data);
-    this.log(`Data update in db in ${pathToDb}`);
+    this.log(`[debounce] Data update in db in <a href="file://${pathToDb}">${pathToDb}</a>`);
   }
 
-  private saveToFileDebounceAction =
-    this.debounce(() => {
-      this.saveToFileAction();
-    });
+  private saveToFileDebounceAction = this.debounce(() => {
+    this.saveToFileAction();
+  });
   //#endregion
 
   read = async () => {
@@ -70,11 +71,11 @@ export class DbDaemonController
   defaultsWriteToDB(@Morphi.Http.Param.Body('data') data: any): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
-      this.log(`defaultsWriteToDB `)
+      this.log(`defaultsWriteToDB: <br>${JSON.stringify(data)} `);
       _.keys(data).forEach(key => {
         this.data[key] = data[key];
       });
-      this.saveToFileDebounceAction
+      this.saveToFileDebounceAction();
       return data;
     }
     //#endregion
@@ -93,6 +94,7 @@ export class DbDaemonController
   triggerSave(): Morphi.Response<any> {
     //#region @backendFunc
     return async () => {
+      this.log(`[triggerSave]`)
       this.saveToFileAction();
     }
     //#endregion
@@ -104,7 +106,9 @@ export class DbDaemonController
     @Morphi.Http.Param.Body('json') json: object): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
-      this.log(`[setValueToDb] key ${objPath} `)
+      this.log(`[setValueToDb] key ${objPath} = <br> <textarea ${TEXT_AREA_CSS} >${
+        JSON.stringify(json, null, 4)
+      }</textarea> `)
       this.data[objPath] = json;
       this.saveToFileDebounceAction();
       return this.data[objPath];
@@ -125,7 +129,9 @@ export class DbDaemonController
   getValueFromDb(@Morphi.Http.Param.Query('objPath') objPath: string): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
-      this.log(`[getValueFromDb] key ${objPath} `)
+      this.log(`[getValueFromDb] key ${objPath} = <br> <textarea ${TEXT_AREA_CSS} >${
+        this.data[objPath] ? JSON.stringify(this.data[objPath]) : '<nothing>'
+        }</textarea> `)
       return this.data[objPath];
     }
     //#endregion
@@ -207,7 +213,7 @@ export class DbDaemonController
   showLog(): Morphi.Response<string> {
     return async () => {
       this.log(`[showLog]`)
-      return JSON.stringify(this.logArr);
+      return this.logArr.join('<hr>')
     }
   }
 
