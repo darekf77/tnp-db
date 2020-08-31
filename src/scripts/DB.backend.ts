@@ -46,7 +46,7 @@ const $DB = async (args: string) => {
   const db = await TnpDB.Instance();
 
   if (args.trim() === 'reinit') {
-    await db.init()
+    await db.init(true)
     await db.setCommand(`${config.frameworkName} db reinit`)
   } else {
     await db.setCommand(`${config.frameworkName} db`)

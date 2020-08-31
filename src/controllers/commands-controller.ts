@@ -9,6 +9,7 @@ import { CommandInstance } from '../entites/command-instance';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
 import { BuildOptions } from '../build-options';
+import { ProjectInstance } from '../entites/project-instance';
 if (!global['ENV']) {
   global['ENV'] = {};
 }
@@ -17,8 +18,10 @@ const config = global['ENV'].config as any;
 
 @CLASS.NAME('CommandsController')
 export class CommandsController extends BaseController {
-  async addExisted() {
-
+  async addExisted(previousCommands?: CommandInstance[]) {
+    Helpers.log(`[db][reinit] adding existed commands`);
+    const projecsLocaitons = (await this.crud.getAll<ProjectInstance>(ProjectInstance)).map(p => p.locationOfProject);
+    return previousCommands.filter(c => projecsLocaitons.includes(c.location))
   }
 
   async update() {

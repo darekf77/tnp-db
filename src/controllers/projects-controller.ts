@@ -23,6 +23,7 @@ export class ProjectsController extends BaseController {
 
   private recognized: ProjectInstance[] = []
   async addExisted() {
+    Helpers.log(`[db][reinit] adding existed projects`);
     if(global['frameworkName'] === 'firedev') {
       Helpers.log(`[tnp-db] For now dont discover project in tnp db`);
       return;

@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import { BaseController } from './base-controlller';
 import { DomainInstance, ProjectInstance } from '../entites';
 import { Models } from 'tnp-models';
-import { Project } from 'tnp-helpers';
+import { Project, Helpers } from 'tnp-helpers';
 import { CLASS } from 'typescript-class-helpers';
 
 @CLASS.NAME('DomainsController')
@@ -16,6 +16,7 @@ export class DomainsController extends BaseController {
 
 
   async addExisted() {
+    Helpers.log(`[db][reinit] adding existed domains`);
     const domains: DomainInstance[] = [];
 
 

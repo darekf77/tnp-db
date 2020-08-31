@@ -190,6 +190,15 @@ export class PortsSet {
   public async getReserverFor(projectLocationOrSevice: string | Models.system.SystemService): Promise<PortInstance[]> {
     return this.ports.filter(f => _.isEqual(f.reservedFor, projectLocationOrSevice));
   }
+
+  public async getPortOf(service: Models.system.SystemService): Promise<number> {
+    const a = this.ports.find(f => f.reservedFor && f.reservedFor.name === service?.name);
+    if (a && _.isNumber(a.id)) {
+      return a.id
+    }
+    return void 0;
+  }
+
   //#endregion
 
   //#region update port instance
@@ -219,12 +228,21 @@ export class PortsSet {
     await Helpers.runSyncOrAsync(this.saveCallback, this.ports);
   }
 
+  // public async killService(service: Models.system.SystemService) {
+  //   const a = this.ports.find(s => s.reservedFor && (s.reservedFor.name === service?.name));
+  //   if (!a) {
+  //     Helpers.warn(`[killService] Not able to kill service by name "${service?.name}" `)
+  //   }
+  //   await this.makeFreeAndKill(a);
+  // }
+
   public async makeFreeAndKill(portIns: PortInstance) {
     for (let j = 0; j < portIns.array.length; j++) {
       const port = portIns.array[j];
       await Helpers.killProcessByPort(port);
     }
     await this.makeFree(portIns);
+
   }
   //#endregion
 

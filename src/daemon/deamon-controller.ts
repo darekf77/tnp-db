@@ -4,10 +4,9 @@ import { TnpDB } from '../wrapper-db.backend';
 import { Project, Helpers } from 'tnp-helpers';
 import { BootstrapWorker } from 'background-worker-process';
 import { WorkerProcessClass } from 'background-worker-process';
-import type { DbCrud } from '../db-crud';
 import * as _ from 'lodash';
 import * as path from 'path';
-
+import * as moment from 'moment';
 
 export interface IDBCrud {
   read: () => Promise<any>;
@@ -26,6 +25,14 @@ export class DbDaemonController
   extends WorkerProcessClass implements Morphi.BASE_CONTROLLER_INIT, IDBCrud
 //#endregion
 {
+  logArr = [];
+  log(msg: string) {
+    //#region @backend
+    msg = `[${moment().format()}] ${msg}`;
+    console.log(msg);
+    this.logArr.push(msg);
+    //#endregion
+  }
   pathToDb: string;
   private _data: any = {
     projects: [
@@ -38,42 +45,36 @@ export class DbDaemonController
   }
 
   //#region @backend
-  private debounce(fn: Function) {
-    return fn;
-    // return _.debounce(fn, 1000);
+  private debounce(fn: any) {
+    return _.debounce(fn, 1000);
   }
-  saveToFile =
+
+  private saveToFileAction() {
+    const pathToDb = (_.isString(this.pathToDb) && this.pathToDb.endsWith('.json')) ? this.pathToDb :
+      path.join(process.cwd(), 'tmp-worker-db.json');
+    Helpers.writeFile(pathToDb, this.data);
+    this.log(`Data update in db in ${pathToDb}`);
+  }
+
+  private saveToFileDebounceAction =
     this.debounce(() => {
-      const pathToDb = (_.isString(this.pathToDb) && this.pathToDb.endsWith('.json')) ? this.pathToDb :
-        path.join(process.cwd(), 'tmp-worker-db.json');
-      Helpers.writeFile(pathToDb, this.data);
-      console.log(`Data update in db in ${pathToDb}`);
+      this.saveToFileAction();
     });
   //#endregion
 
-
-  @Morphi.Http.GET('/read')
-  readFromWorker(): Morphi.Response<any> {
-    //#region @backendFunc
-    return async (req, res) => {
-      return {}; // TODO
-    }
-    //#endregion
-  }
-
   read = async () => {
-    const result = await this.readFromWorker().received;
-    return result.body.json
+    // no needed here
   };
 
   @Morphi.Http.POST('/defaults')
   defaultsWriteToDB(@Morphi.Http.Param.Body('data') data: any): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
+      this.log(`defaultsWriteToDB `)
       _.keys(data).forEach(key => {
         this.data[key] = data[key];
       });
-      this.saveToFile();
+      this.saveToFileDebounceAction
       return data;
     }
     //#endregion
@@ -88,14 +89,24 @@ export class DbDaemonController
     }
   };
 
+  @Morphi.Http.PUT('/save')
+  triggerSave(): Morphi.Response<any> {
+    //#region @backendFunc
+    return async () => {
+      this.saveToFileAction();
+    }
+    //#endregion
+  }
+
   @Morphi.Http.PUT('/set')
   setValueToDb(
     @Morphi.Http.Param.Query('objPath') objPath: string,
     @Morphi.Http.Param.Body('json') json: object): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
+      this.log(`[setValueToDb] key ${objPath} `)
       this.data[objPath] = json;
-      this.saveToFile();
+      this.saveToFileDebounceAction();
       return this.data[objPath];
     }
     //#endregion
@@ -114,6 +125,7 @@ export class DbDaemonController
   getValueFromDb(@Morphi.Http.Param.Query('objPath') objPath: string): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
+      this.log(`[getValueFromDb] key ${objPath} `)
       return this.data[objPath];
     }
     //#endregion
@@ -136,13 +148,14 @@ export class DbDaemonController
     @Morphi.Http.Param.Query('pathToDb') pathToDb: string
   ): Morphi.Response<any> {
     return async (req, res) => {
+      this.log(`[copyAllToWorker]`)
       if (Helpers.exists(pathToDb)) {
         this.pathToDb = pathToDb;
       }
       _.keys(data).forEach(key => {
         this.data[key] = data[key];
       });
-      this.saveToFile();
+      this.saveToFileDebounceAction();
       return this.data;
     }
   }
@@ -157,6 +170,7 @@ export class DbDaemonController
   @Morphi.Http.GET()
   hello(): Morphi.Response {
     //#region @backendFunc
+    this.log(`[hello]`)
     return async (req, res) => 'hello';
     //#endregion
   }
@@ -174,8 +188,56 @@ export class DbDaemonController
     //#endregion
   }
 
-  async initExampleDbData() {
+  @Morphi.Http.GET('/info')
+  info(): Morphi.Response<string> {
+    return async () => {
+      this.log(`[info]`)
+      return `
 
+      <h1><a href="log" > log </a> </h1>
+      <h1><a href="wholeDb" > whole json db </a> </h1>
+
+      `
+    }
+  }
+
+
+
+  @Morphi.Http.GET('/log')
+  showLog(): Morphi.Response<string> {
+    return async () => {
+      this.log(`[showLog]`)
+      return JSON.stringify(this.logArr);
+    }
+  }
+
+  @Morphi.Http.GET('/wholeDb')
+  wholeDb() {
+    //#region @backendFunc
+    return async () => {
+      this.log(`[wholeDb]`)
+      return JSON.stringify(this.data);
+    }
+    //#endregion
+  }
+
+
+  @Morphi.Http.GET('/entity/:entityname')
+  showEntity(@Morphi.Http.Param.Path('entityname') entityname: string): Morphi.Response<string> {
+    //#region @backendFunc
+    return async () => {
+      const entity = this.data[entityname];
+      if (_.isUndefined(entity)) {
+        return `no entity by name: ${entityname}`;
+      }
+      this.log(`[showEntity] entity: ${entityname}`)
+      return JSON.stringify(entity);
+    }
+    //#endregion
+  }
+
+  async initExampleDbData() {
+    this.log(`[initExampleDbData]`)
   }
 
 

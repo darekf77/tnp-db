@@ -23,6 +23,7 @@ import { ProcessBoundAction } from './models';
 import { BuildOptions } from './build-options';
 import { Morphi } from 'morphi';
 import { DbDaemonController } from './daemon/deamon-controller';
+import type { IDBCrud } from './daemon/deamon-controller';
 declare const global: any;
 if (!global['ENV']) {
   global['ENV'] = {};
@@ -78,7 +79,7 @@ export class TnpDB {
   private __commandsCtrl: CommandsController;
   private __processCtrl: ProcessController;
   private _adapter;
-  private db: any;
+  private db: IDBCrud;
 
   public get portsManaber() {
     return this.__portsCtrl.manager;
@@ -88,26 +89,35 @@ export class TnpDB {
     if (!this.db) {
       return;
     }
-    // this.db.read();
-    return this.db.get(keyOrEntityName).value() as T;
+    return await this.db.get(keyOrEntityName).value() as T;
   }
   public async rawSet<T = any>(keyOrEntityName: string, json: T) {
     if (!this.db) {
       return;
     }
-    // this.db.set(keyOrEntityName, json).write();
+    await this.db.set(keyOrEntityName, json as any).write();
   }
 
   private crud: DbCrud;
   //#endregion
 
   //#region constructor/init
-  constructor(private location: string) {
+  constructor(public readonly location: string) {
 
   }
   public async init(recreate = true) {
-    // Helpers.log('[db] recreate db instance');
+    if (global.reinitDb) {
+      recreate = true;
+    }
     if (recreate) {
+      if (global.dbAlreadyRecreated) {
+        Helpers.log(`[tnp-db] db already recreated`);
+        return;
+      }
+      global.dbAlreadyRecreated = true;
+      Helpers.log('[db] recreate db instance');
+    }
+    if (!Helpers.exists(this.location)) {
       Helpers.writeFile(this.location, '');
     }
     this._adapter = new FileSync(this.location);
@@ -115,6 +125,8 @@ export class TnpDB {
     this.db = result as any;
 
     this.crud = new DbCrud(this.db, this);
+
+
     // Helpers.log('[db] Writed default values');
     this.__projectsCtrl = new ProjectsController(this.crud);
     this.__domainsCtrl = new DomainsController(this.crud);
@@ -127,54 +139,62 @@ export class TnpDB {
 
     if (recreate) {
       Helpers.log('[db] reinit transacton started');
-      Helpers.log(`REMOVE FILE ${config.pathes.tmp_transaction_pid_txt}`)
-      Helpers.removeFileIfExists(config.pathes.tmp_transaction_pid_txt);
-      await this.reinitDB();
+      if (global['frameworkName'] === 'firedev') {
+        const pathToFiredevMorphi = path.join(path.dirname(this.location), 'morphi');
+        Helpers.removeFolderIfExists(pathToFiredevMorphi);
+      }
+      const previousCommands = await this.crud.getAll<CommandInstance>(CommandInstance);
+
+      Helpers.log(`[db][reinit] writing default values`);
+      await this.crud.clearDBandReinit({
+        projects: [],
+        domains: [],
+        ports: [],
+        builds: [],
+        commands: [],
+        processes: []
+      });
+
+      await this.__projectsCtrl.addExisted();
+      await this.__domainsCtrl.addExisted();
+      await (this.__commandsCtrl as CommandsController).addExisted(previousCommands);
+      await this.__portsCtrl.addExisted();
+      await this.__buildsCtrl.addExisted();
+      await this.__processCtrl.addExisted();
+
+      if (config) {
+        await config.initCoreProjects(Project, Helpers);
+      }
+
+      Helpers.info(`[db][reinit] DONE`);
       Helpers.log('[db] reinit transacton finish');
     }
+
+    if (global.useWorker) {
+      await this.crud.initDeamon(recreate);
+    }
+
   }
 
   //#endregion
 
-  async daemonTest() {
-    await this.crud.initDeamon();
+  async getWokerPort() {
+    const portsManager = await this.portsManaber;
+    return await portsManager.getPortOf({ name: CLASS.getName(DbDaemonController) });
   }
 
-  //#region reinint db
-  public async reinitDB() {
-    if (global['frameworkName'] === 'firedev') {
-      const pathToFiredevMorphi = path.join(path.dirname(this.location), 'morphi');
-      Helpers.removeFolderIfExists(pathToFiredevMorphi);
+  async killWorker() {
+    const portsManager = await this.portsManaber;
+    Helpers.log(`[killing worker] starting killing db worker...`);
+    try {
+      await (this.db as DbDaemonController).triggerSave().received;
+      Helpers.log(`[killing worker] trigerr save OK`);
+    } catch (error) {
+      Helpers.log(`[killing worker] trigerr save ERROR`);
     }
-    Helpers.log(`[db][reinit] writing default values`);
-    await this.crud.clearDBandReinit({
-      projects: [],
-      domains: [],
-      ports: [],
-      builds: [],
-      commands: [],
-      processes: []
-    });
-    Helpers.log(`[db][reinit] adding existed projects`);
-    await this.__projectsCtrl.addExisted()
-    Helpers.log(`[db][reinit] adding existed domains`);
-    await this.__domainsCtrl.addExisted()
-    Helpers.log(`[db][reinit] adding existed commands`);
-    await this.__commandsCtrl.addExisted()
-    Helpers.log(`[db][reinit] adding existed ports`);
-    await this.__portsCtrl.addExisted()
-    Helpers.log(`[db][reinit] adding existed builds`);
-    await this.__buildsCtrl.addExisted()
-    Helpers.log(`[db][reinit] adding existed processes`);
-    await this.__processCtrl.addExisted();
-
-    if (config) {
-      await config.initCoreProjects(Project, Helpers);
-    }
-
-    Helpers.info(`[db][reinit] DONE`);
+    const portTokill = await portsManager.getPortOf({ name: CLASS.getName(DbDaemonController) })
+    await Helpers.killProcessByPort(portTokill);
   }
-  //#endregion
 
   //#region check if build allowed
   public async checkBuildIfAllowed(currentProject: Project,

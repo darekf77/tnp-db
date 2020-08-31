@@ -6,11 +6,13 @@ import { BaseController } from './base-controlller';
 import { ProcessInstance, ProcessMetaInfo } from '../entites';
 import { Models } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
+import { Helpers } from 'tnp-helpers';
 
 @CLASS.NAME('ProcessController')
 export class ProcessController extends BaseController {
 
   async addExisted() {
+    Helpers.log(`[db][reinit] adding existed processes`);
     // const ps: PsListInfo[] = await psList();
     // // console.log(ps.filter(p => p.cmd.split(' ').filter(p => p.endsWith(`/bin/tnp`)).length > 0));
     // const proceses = ps

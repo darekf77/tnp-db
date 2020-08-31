@@ -18,12 +18,9 @@ import type { TnpDB } from './wrapper-db.backend';
 
 
 export class DbCrud {
-
-  protected daemonMode = false;
-  // protected deamonIsInited = false;
   protected worker: DbDaemonController;
   get db() {
-    if (this.daemonMode) {
+    if (this.worker) {
       return this.worker;
     }
     return this.dbFromFile;
@@ -32,43 +29,55 @@ export class DbCrud {
 
   }
 
-  async initDeamon() {
+  private async createInstance(classFN, entities, registerdOnPort, startNew: boolean) {
+    let res = await WorkersFactor.create<DbDaemonController>(
+      classFN,
+      entities,
+      registerdOnPort,
+      {
+        startWorkerServiceAsChildProcess: startNew
+      }
+    );
+    return res;
+  }
+
+  async initDeamon(recreate = false) {
     const entities = [];
     const portsManager = await this.dbWrapper.portsManaber;
-    const portForDaemon = await portsManager.registerOnFreePort({
+    await portsManager.registerOnFreePort({
       name: CLASS.getName(DbDaemonController)
     }, {
-      killAlreadyRegisterd: true,
       actionWhenAssignedPort: async (itWasRegisterd, registerdOnPort) => {
 
         Helpers.info(`[tnp-db][deamon] ${itWasRegisterd ? 'already' : 'inited'} on port: ${registerdOnPort}`);
-        let res = await WorkersFactor.create<DbDaemonController>(
+
+        let res = await this.createInstance(
           DbDaemonController,
           entities,
           registerdOnPort,
-          { startWorkerServiceAsChildProcess: !itWasRegisterd }
+          (!itWasRegisterd || recreate)
         );
 
         const isHealtyWorker = await res.instance.$$healty;
+        let copyDataToWorker = (!itWasRegisterd || recreate || !isHealtyWorker)
+
         if (!isHealtyWorker) {
-          res = await WorkersFactor.create<DbDaemonController>(
+          res = await this.createInstance(
             DbDaemonController,
             entities,
             registerdOnPort,
-            { killByPortIfStartingServiceAsChildProcess: true }
+            true
           );
         }
+        if (copyDataToWorker) {
+          const allData = Helpers.readJson(this.dbWrapper.location);
+          await res.instance.copyAllToWorker(allData, this.dbWrapper.location).received;
+        }
+
         this.worker = res.instance;
       }
     });
-    // console.log(await this.db.read())
-    this.daemonMode = true;
-    const projects = await this.db.get('projects').value();
-    await this.db.set('testoweenitty', ['hehehehe', 'iijijij']).write()
-    console.log(projects);
-    console.log(await this.db.get('testoweenitty').value());
-    console.log('waiting')
-    Helpers.pressKeyAndContinue();
+
     // process.exit(0)
     // const copyRes = await this.worker.copyAllToWorker(await this.getAll(ProjectInstance)).received;
     // console.log(copyRes.body.text);
@@ -93,12 +102,9 @@ export class DbCrud {
     const entityName: EntityNames = getEntityNameByClassFN(classFN);
     // console.log(`${CLASS.getName(classFN)} entity name from object`, entityName);
     // process.exit(0)
-    if (this.daemonMode) {
-      // return await this.worker.getAll(classFN);
-    } else {
-      await this.db.read();
-      var res = (await this.db.get(entityName).value() as T[]);
-    }
+
+    await this.db.read();
+    var res = (await this.db.get(entityName).value() as T[]);
     // console.log(`${CLASS.getName(classFN)}, entity ${entityName}, res`, res)
     if (_.isArray(res)) {
       for (let index = 0; index < res.length; index++) {

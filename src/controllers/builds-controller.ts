@@ -70,6 +70,7 @@ export class BuildsController extends BaseController {
   }
 
   async addExisted() {
+    Helpers.log(`[db][reinit] adding existed builds`);
     await this.update();
   }
 

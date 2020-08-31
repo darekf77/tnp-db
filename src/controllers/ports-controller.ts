@@ -29,7 +29,7 @@ export class PortsController extends BaseController {
   }
 
   async addExisted() {
-
+    Helpers.log(`[db][reinit] adding existed ports`);
     const defaultPorts: PortInstance[] = [
 
       new PortInstance([80, 443], new Models.system.SystemService('http(s) related')),
