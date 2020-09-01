@@ -49,7 +49,7 @@ export class DbCrud {
     }, {
       actionWhenAssignedPort: async (itWasRegisterd, registerdOnPort) => {
 
-        Helpers.info(`[tnp-db][deamon] ${itWasRegisterd ? 'already' : 'inited'} on port: ${registerdOnPort}`);
+        Helpers.log(`[tnp-db][deamon] ${itWasRegisterd ? 'already' : 'inited'} on port: ${registerdOnPort}`);
 
         let res = await this.createInstance(
           DbDaemonController,
