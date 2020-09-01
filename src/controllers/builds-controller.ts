@@ -9,6 +9,8 @@ import { BuildInstance } from '../entites/build-instance';
 // import { BuildOptions } from '../../project/features';
 import { CLASS } from 'typescript-class-helpers';
 import { BuildOptions } from '../build-options';
+import { DB, TnpDB } from 'tnp-db';
+
 declare const global: any;
 if (!global['ENV']) {
   global['ENV'] = {};
@@ -43,16 +45,40 @@ export class BuildsController extends BaseController {
 
       const project = Project.From(location)
       if (project) {
+
         Helpers.log(`
 
-        location: ${Helpers.getWorkingDirOfProcess(p.pid)},
+        location: ${location},
           pid: ${p.pid},
           cmd: ${p.cmd},
           ppid: ${p.ppid},
 
         `, 1);
+        const splitCMd = p.cmd.split(' ');
+        if (splitCMd.length >= 3) {
+          const tnpParam = Helpers.cliTool.paramsFrom(splitCMd[2]);
+          if ([
+            Helpers.cliTool.paramsFromFn(DB.$LAST_BUILD),
+            Helpers.cliTool.paramsFromFn(DB.$LAST_BUILD, true),
+          ].includes(tnpParam)) {
+            const db = await TnpDB.Instance();
+            const lastBuildCommand = (await db.getCommands()).find(c => c.location === location && c.isBuildCommand);
+            if (lastBuildCommand) {
+              p.cmd = lastBuildCommand.command;
+            }
+          } else if ([
+            Helpers.cliTool.paramsFromFn(DB.$LAST),
+            Helpers.cliTool.paramsFromFn(DB.$LAST, true),
+          ].includes(tnpParam)) {
+            const db = await TnpDB.Instance();
+            const lastNotBuildCommand = (await db.getCommands()).find(c => c.location === location && !c.isBuildCommand);
+            if (lastNotBuildCommand) {
+              p.cmd = lastNotBuildCommand.command;
+            }
+          }
+        }
         const b = new BuildInstance({
-          location: Helpers.getWorkingDirOfProcess(p.pid),
+          location,
           pid: p.pid,
           cmd: p.cmd,
           ppid: p.ppid,
