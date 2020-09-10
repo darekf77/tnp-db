@@ -35,7 +35,8 @@ export class DbCrud {
       entities,
       registerdOnPort,
       {
-        startWorkerServiceAsChildProcess: startNew
+        startWorkerServiceAsChildProcess: startNew,
+        disabledRealtime: true,
       }
     );
     return res;
@@ -81,7 +82,7 @@ export class DbCrud {
     // process.exit(0)
     // const copyRes = await this.worker.copyAllToWorker(await this.getAll(ProjectInstance)).received;
     // console.log(copyRes.body.text);
-    //@LAST
+
   }
 
   // private listenters = {} as any;

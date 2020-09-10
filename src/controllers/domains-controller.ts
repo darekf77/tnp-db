@@ -22,7 +22,7 @@ export class DomainsController extends BaseController {
 
     (await this.crud.getAll<ProjectInstance>(Project)).forEach((p) => {
       const project: Project = p.project;
-      if (!project.isWorkspaceChildProject && project.env &&
+      if (project && !project.isWorkspaceChildProject && project.env &&
         project.env.config && project.env.config.domain) {
 
         // console.log(`Domain detected: ${p.env.config.domain}, env:${p.env.config.name} `)
