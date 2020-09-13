@@ -35,6 +35,7 @@ export class DbCrud {
       entities,
       registerdOnPort,
       {
+        killAlreadRegisteredProcess: false,
         startWorkerServiceAsChildProcess: startNew,
         disabledRealtime: true,
       }
@@ -63,6 +64,7 @@ export class DbCrud {
         let copyDataToWorker = (!itWasRegisterd || recreate || !isHealtyWorker)
 
         if (!isHealtyWorker) {
+          res.context.destroy();
           res = await this.createInstance(
             DbDaemonController,
             entities,
