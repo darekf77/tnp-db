@@ -1,7 +1,5 @@
 //#region @backend
 import * as _ from 'lodash';
-import * as fse from 'fs-extra';
-import { BehaviorSubject } from 'rxjs';
 import { CLASS } from 'typescript-class-helpers'
 
 import { DBBaseEntity } from './entites/base-entity';
@@ -15,10 +13,12 @@ import { Models } from 'tnp-models';
 import { WorkersFactor } from 'background-worker-process';
 import { DbDaemonController, IDBCrud } from './daemon/deamon-controller';
 import type { TnpDB } from './wrapper-db.backend';
+import { DbUpdateProjectEntity } from './daemon/daemon-entity';
+import { Morphi } from 'morphi';
 
 
 export class DbCrud {
-  protected worker: DbDaemonController;
+  readonly worker: DbDaemonController;
   public get db() {
     if (this.worker) {
       return this.worker;
@@ -37,14 +37,15 @@ export class DbCrud {
       {
         killAlreadRegisteredProcess: false,
         startWorkerServiceAsChildProcess: startNew,
-        disabledRealtime: true,
+        disabledRealtime: false,
       }
     );
     return res;
   }
 
+  public readonly context: Morphi.FrameworkContext;
   async initDeamon(recreate = false) {
-    const entities = [];
+    const entities = [DbUpdateProjectEntity];
     const portsManager = await this.dbWrapper.portsManaber;
     await portsManager.registerOnFreePort({
       name: CLASS.getName(DbDaemonController)
@@ -77,6 +78,9 @@ export class DbCrud {
           await res.instance.copyAllToWorker(allData, this.dbWrapper.location).received;
         }
 
+        // @ts-ignore
+        this.context = res.context;
+        // @ts-ignore
         this.worker = res.instance;
       }
     });

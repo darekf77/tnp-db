@@ -7,6 +7,8 @@ import { WorkerProcessClass } from 'background-worker-process';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as moment from 'moment';
+import { DbUpdateProjectEntity } from '../daemon/daemon-entity';
+import { CLASS } from 'typescript-class-helpers';
 
 export interface IDBCrud {
   read: () => Promise<any>;
@@ -100,6 +102,19 @@ export class DbDaemonController
     //#endregion
   }
 
+  @Morphi.Http.GET()
+  triggerChangeOfProject(
+    @Morphi.Http.Param.Query('location') location: string,
+    @Morphi.Http.Param.Query('channel') channel: string,
+  ): Morphi.Response<any> {
+    //#region @backendFunc
+    return async () => {
+      this.log(`[triggerChangeOfProject] for locatino: "${location}"`)
+      Morphi.Realtime.Server.TrigggerEntityChanges(DbUpdateProjectEntity, location);
+    }
+    //#endregion
+  }
+
   @Morphi.Http.PUT('/set')
   setValueToDb(
     @Morphi.Http.Param.Query('objPath') objPath: string,
@@ -108,7 +123,7 @@ export class DbDaemonController
     return async (req, res) => {
       this.log(`[setValueToDb] key ${objPath} = <br> <textarea ${TEXT_AREA_CSS} >${
         JSON.stringify(json, null, 4)
-      }</textarea> `)
+        }</textarea> `)
       this.data[objPath] = json;
       this.saveToFileDebounceAction();
       return this.data[objPath];

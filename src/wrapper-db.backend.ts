@@ -24,6 +24,7 @@ import { BuildOptions } from './build-options';
 import { Morphi } from 'morphi';
 import { DbDaemonController } from './daemon/deamon-controller';
 import type { IDBCrud } from './daemon/deamon-controller';
+import { DbUpdateProjectEntity } from './daemon/daemon-entity';
 declare const global: any;
 if (!global['ENV']) {
   global['ENV'] = {};
@@ -103,6 +104,19 @@ export class TnpDB {
 
   private crud: DbCrud;
   //#endregion
+
+  async listenToChannel(project: Project, channel: Models.realtime.UpdateType) {
+    DbUpdateProjectEntity.for(project).subscribeRealtimeUpdates({
+      callback: (data) => {
+        console.log(data.body.json);
+      }
+    })
+  }
+
+  async triggerChangeForProject(project: Project, channel: Models.realtime.UpdateType) {
+    return await this.crud.worker.triggerChangeOfProject(project.location, channel).received;
+  }
+
 
   //#region constructor/init
   constructor(public readonly location: string) {
