@@ -43,12 +43,15 @@ export async function $SHOW_LAST(args: string) {
 }
 
 const $DB = async (args: string) => {
-  const db = await TnpDB.Instance();
+
+
 
   if (args.trim() === 'reinit') {
-    await db.init(true)
+    global.reinitDb = true;
+    const db = await TnpDB.Instance();
     await db.setCommand(`${config.frameworkName} db reinit`)
   } else {
+    const db = await TnpDB.Instance();
     await db.setCommand(`${config.frameworkName} db`)
   }
 

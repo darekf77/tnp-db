@@ -6,10 +6,13 @@ import * as _DB from './scripts/DB.backend';
 
 export const DB = _DB.default;
 
+
 export const CLI_FUNCTIONS = [
   _DB.$LAST,
   _DB.$LAST_BUILD,
   _DB.$SHOW_LAST,
+  DB.$DB,
+  DB.$DB_REINIT,
 ]
 
 //#endregion

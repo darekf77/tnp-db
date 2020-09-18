@@ -122,7 +122,7 @@ export class TnpDB {
   constructor(public readonly location: string) {
 
   }
-  public async init(recreate = true) {
+  private async init(recreate = true) {
     if (global.reinitDb) {
       recreate = true;
     }

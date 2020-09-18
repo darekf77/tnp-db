@@ -18,6 +18,13 @@ import { Morphi } from 'morphi';
 
 
 export class DbCrud {
+  // private static _instance: DbCrud;
+  // static Instance(dbFromFile: IDBCrud, dbWrapper: TnpDB) {
+  //   if (!DbCrud._instance) {
+  //     DbCrud._instance = new DbCrud(dbFromFile, dbWrapper);
+  //   }
+  //   return DbCrud._instance;
+  // }
   readonly worker: DbDaemonController;
   public get db() {
     if (this.worker) {
@@ -35,9 +42,10 @@ export class DbCrud {
       entities,
       registerdOnPort,
       {
-        killAlreadRegisteredProcess: false,
+        killAlreadRegisteredProcess: startNew,
         startWorkerServiceAsChildProcess: startNew,
         disabledRealtime: false,
+        preventSameContexts: true,
       }
     );
     return res;
@@ -45,6 +53,7 @@ export class DbCrud {
 
   public readonly context: Morphi.FrameworkContext;
   async initDeamon(recreate = false) {
+
     const entities = [DbUpdateProjectEntity];
     const portsManager = await this.dbWrapper.portsManaber;
     await portsManager.registerOnFreePort({
@@ -53,7 +62,6 @@ export class DbCrud {
       actionWhenAssignedPort: async (itWasRegisterd, registerdOnPort) => {
 
         Helpers.log(`[tnp-db][deamon] ${itWasRegisterd ? 'already' : 'inited'} on port: ${registerdOnPort}`);
-
         let res = await this.createInstance(
           DbDaemonController,
           entities,

@@ -155,7 +155,8 @@ export class PortsSet {
   /**
    * Get port of just registerd service
    */
-  public async registerOnFreePort(service: Models.system.SystemService, options?: Models.system.RegisterServiceOptions): Promise<number> {
+  public async registerOnFreePort(service: Models.system.SystemService,
+    options?: Models.system.RegisterServiceOptions): Promise<number> {
     if (!options) {
       options = {};
     };
