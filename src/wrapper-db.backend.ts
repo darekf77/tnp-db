@@ -19,6 +19,7 @@ import { DbCrud } from './db-crud';
 import { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance, ProcessMetaInfo, PortInstance } from './entites';
 import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
+import { Log, Level } from 'ng2-logger';
 import { ProcessBoundAction } from './models';
 import { BuildOptions } from './build-options';
 import { Morphi } from 'morphi';
@@ -33,6 +34,8 @@ const config = global['ENV'].config as any;
 const buildOptionsParams = ['watch', 'appBuild', 'prod'];
 export { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance } from './entites';
 //#endregion
+
+// const log = Helpers.Log.create(`[tnp-db][wrapper-db.backend]`);
 
 export class TnpDB {
   //#region static access
