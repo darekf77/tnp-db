@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { Morphi } from 'morphi';
 import { Project } from 'tnp-helpers';
 
@@ -13,9 +14,9 @@ export class DbUpdateProjectEntity extends Morphi.Base.Entity {
    * location of project
    */
   id: string;
-  static for(project: Project) {
+  static for(projectOrLocaiton: Project | string) {
     const res = new DbUpdateProjectEntity();
-    res.id = project.location;
+    res.id = _.isString(projectOrLocaiton) ? projectOrLocaiton : projectOrLocaiton.location;
     return res;
   }
 }

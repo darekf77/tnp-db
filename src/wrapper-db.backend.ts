@@ -108,12 +108,15 @@ export class TnpDB {
   private crud: DbCrud;
   //#endregion
 
-  async listenToChannel(project: Project, channel: Models.realtime.UpdateType) {
+  listenToChannel(project: Project, channel: Models.realtime.UpdateType,
+    callback: () => void | Promise<void>) {
     DbUpdateProjectEntity.for(project).subscribeRealtimeUpdates({
       callback: (data) => {
-        console.log(data.body.json);
-      }
-    })
+        Helpers.log(`ext update. channel: "${channel}" `, data.body.json);
+        _.isFunction(callback) && Helpers.runSyncOrAsync(callback);
+      },
+      property: channel
+    });
   }
 
   async triggerChangeForProject(project: Project, channel: Models.realtime.UpdateType) {
@@ -189,7 +192,7 @@ export class TnpDB {
     }
 
     if (global.useWorker) {
-      await this.crud.initDeamon(recreate);
+      await this.crud.initDeamon(recreate || global.restartWorker);
     }
 
   }
@@ -363,7 +366,6 @@ export class TnpDB {
     }
 
     return buildsFromDB.filter(build => {
-      // build.buildOptions.copyto
       return paramsToCheck.filter(p => {
         if (buildOptionsParams.includes(p)) {
           return build.buildOptions && build.buildOptions[p] == options[p];

@@ -160,14 +160,16 @@ export class DbCrud {
 
   async set(entity: DBBaseEntity) {
     const classFN = CLASS.getFromObject(entity)
-
+    Helpers.log('getting all start')
     const all = await this.getAll(CLASS.getFromObject(entity))
+    Helpers.log('getting all done')
     const existed = all.find(f => f.isEqual(entity))
     if (existed) {
       _.merge(existed, entity)
     } else {
       all.push(entity)
     }
+    Helpers.log('setting all')
     await this.setBulk(all, classFN);
   }
 
@@ -238,7 +240,7 @@ export class DbCrud {
     [BuildInstance, PortInstance, CommandInstance, DomainInstance, ProjectInstance]
       .find(f => {
         if (!f) {
-          throw `Undefined instance of class. Propobly circural dependency`
+          throw `Undefined instance of class. Probably circural dependency`
         }
         return false;
       })

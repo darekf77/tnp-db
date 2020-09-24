@@ -109,8 +109,16 @@ export class DbDaemonController
   ): Morphi.Response<any> {
     //#region @backendFunc
     return async () => {
-      this.log(`[triggerChangeOfProject] for locatino: "${location}"`)
-      Morphi.Realtime.Server.TrigggerEntityChanges(DbUpdateProjectEntity, location);
+      this.logArr = [];
+      if (channel) {
+        this.log(`[TrigggerEntityPropertyChanges] for locatino: "${location}", channel: "${channel}"`);
+        const a = DbUpdateProjectEntity.for({ location } as any);
+        Morphi.Realtime.Server.TrigggerEntityPropertyChanges(a, channel);
+      } else {
+        this.log(`[triggerChangeOfProject] for locatino: "${location}"`)
+        Morphi.Realtime.Server.TrigggerEntityChanges(DbUpdateProjectEntity, location);
+      }
+
     }
     //#endregion
   }

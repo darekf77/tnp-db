@@ -141,6 +141,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     const optionsToMerge = !!mainOptions ? mainOptions : this.getMainOptions(split);
     // console.log('optionsToMerge', optionsToMerge)
     if (!optionsToMerge) {
+      Helpers.log(`[build-options] NO options to merge`)
       return;
     }
     const argsObj: Partial<BuildOptions> = require('minimist')(split)
@@ -183,6 +184,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     if (!_.isArray(argsObj.forClient)) {
       argsObj.forClient = []
     }
+    argsObj.forClient = Helpers.arrays.uniqArray<Project>(argsObj.forClient, 'location');
 
     if (!_.isNil(argsObj.copyto)) {
       if (_.isString(argsObj.copyto)) {
@@ -209,10 +211,14 @@ export class BuildOptions implements Models.dev.StartForOptions {
       argsObj.copyto = []
     }
 
+    argsObj.copyto = Helpers.arrays.uniqArray<Project>(argsObj.copyto, 'location');
+
     argsObj.onlyWatchNoBuild = !!argsObj.onlyWatchNoBuild;
     argsObj.genOnlyClientCode = !!argsObj.genOnlyClientCode;
 
-    return _.merge(new BuildOptions(), argsObj) as BuildOptions;
+    const result = _.merge(new BuildOptions(), argsObj) as BuildOptions;
+    // console.log(result)
+    return result;
     //#endregion
   }
 

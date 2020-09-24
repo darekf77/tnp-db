@@ -69,19 +69,24 @@ export class CommandsController extends BaseController {
   }
 
   async updateCommandBuildOptions(location: string, buildOptions: BuildOptions) {
+    Helpers.log('getting last cmd')
     const cmd = await this.lastCommandFrom(location, true);
     if (cmd) {
-      const clients = _.isArray(buildOptions.forClient) ? (buildOptions.forClient as any[])
-        .map((c: Project) => {
-          return `--forClient ${c.name}`
-        }).join(' ') : '';
+      const clients = _.isArray(
+        buildOptions.forClient) ? (
+          Helpers.arrays.uniqArray<Project>(buildOptions.forClient, 'location') as any[]
+        )
+          .map((c: Project) => {
+            return `--forClient ${c.name}`
+          }).join(' ') : '';
 
-      const copyto = _.isArray(buildOptions.copyto) ? (buildOptions.copyto as any[])
-        .map((c: Project) => {
-          return `--copyto ${c.location}`
-        }).join(' ') : '';
+      const copyto = _.isArray(buildOptions.copyto) ?
+        (Helpers.arrays.uniqArray<Project>(buildOptions.copyto, 'location') as any[])
+          .map((c: Project) => {
+            return `--copyto ${c.location}`
+          }).join(' ') : '';
 
-      cmd.command = cmd.command + ' ' + clients + ' ' + copyto;
+      cmd.command = cmd.shortCommandForLastCommand + ' ' + clients + ' ' + copyto;
       await this.crud.set(cmd)
     }
     // else {
