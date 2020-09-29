@@ -15,12 +15,6 @@ export const config = {
   }
 }
 
-
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-global['ENV']['config'] = config;
-
 import { TnpDB } from './wrapper-db.backend';
 
 import { DB } from './index';

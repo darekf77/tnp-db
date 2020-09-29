@@ -7,10 +7,7 @@ import { DbCrud } from '../db-crud';
 import { BaseController } from './base-controlller';
 import { ProjectInstance } from '../entites';
 declare const global: any;
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-const config = global['ENV'].config as any;
+import { config } from 'tnp-config';
 import { CLASS } from 'typescript-class-helpers';
 import { Project, Helpers } from 'tnp-helpers';
 

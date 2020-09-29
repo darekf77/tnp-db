@@ -1,3 +1,4 @@
+import { config } from 'tnp-config';
 //#region @backend
 import * as  psList from 'ps-list';
 import { TnpDB } from '../index';
@@ -8,10 +9,6 @@ import { DBProcMonitor } from './db-proc-monitor.backend';
 import { DBMonitTop } from './monit-top.backend';
 import { DBMonitCommands } from './monit-commands.backend';
 declare const global: any;
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-const config = global['ENV'].config as any;
 
 export async function $LAST(args: string) {
   const db = await TnpDB.Instance();

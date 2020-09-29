@@ -1,11 +1,26 @@
-//#region imports / exports
+declare const global: any;
+//#region @backend
 import * as low from 'lowdb';
 import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as _ from 'lodash';
 import * as path from 'path';
-import * as FileSync from 'lowdb/adapters/FileSync'
+import * as FileSync from 'lowdb/adapters/FileSync';
+//#endregion
 
+//#region isomorphic
+import { CLASS } from 'typescript-class-helpers';
+import { Models } from 'tnp-models';
+import { Log, Level } from 'ng2-logger';
+import { Helpers, Project } from 'tnp-helpers';
+//#endregion
+
+//#region local
+import { DbCrud } from './db-crud';
+import { ProcessBoundAction } from './models';
+import { BuildOptions } from './build-options';
+import { DbDaemonController } from './daemon/deamon-controller';
+import { DbUpdateProjectEntity } from './daemon/daemon-entity';
 import {
   ProjectsController,
   DomainsController,
@@ -14,26 +29,25 @@ import {
   CommandsController,
   ProcessController
 } from './controllers';
-import { Helpers, Project } from 'tnp-helpers';
-import { DbCrud } from './db-crud';
-import { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance, ProcessMetaInfo, PortInstance } from './entites';
-import { CLASS } from 'typescript-class-helpers';
-import { Models } from 'tnp-models';
-import { Log, Level } from 'ng2-logger';
-import { ProcessBoundAction } from './models';
-import { BuildOptions } from './build-options';
-import { Morphi } from 'morphi';
-import { DbDaemonController } from './daemon/deamon-controller';
-import type { IDBCrud } from './daemon/deamon-controller';
-import { DbUpdateProjectEntity } from './daemon/daemon-entity';
-declare const global: any;
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-const config = global['ENV'].config as any;
-const buildOptionsParams = ['watch', 'appBuild', 'prod'];
-export { BuildInstance, CommandInstance, ProjectInstance, ProcessInstance } from './entites';
+import {
+  BuildInstance,
+  CommandInstance,
+  ProjectInstance,
+  ProcessInstance,
+  ProcessMetaInfo,
+  PortInstance
+} from './entites';
 //#endregion
+
+import { config } from 'tnp-config';
+const buildOptionsParams = ['watch', 'appBuild', 'prod'];
+export {
+  BuildInstance,
+  CommandInstance,
+  ProjectInstance,
+  ProcessInstance
+} from './entites';
+
 
 // const log = Helpers.Log.create(`[tnp-db][wrapper-db.backend]`);
 
@@ -184,7 +198,7 @@ export class TnpDB {
       await this.__processCtrl.addExisted();
 
       if (config) {
-        await config.initCoreProjects(Project, Helpers);
+        await this.initCoreProjects();
       }
 
       Helpers.info(`[db][reinit] DONE`);
@@ -198,6 +212,39 @@ export class TnpDB {
   }
 
   //#endregion
+
+  //#region initCoreprojects
+  async initCoreProjects() {
+    let allCoreProject: (Project & {
+      projectLinkedFiles: any; // TODO QUICKFIX,
+      filesStructure: any;
+    })[] = [];
+    (config.coreProjectVersions as Models.libs.FrameworkVersion[]).forEach(v => {
+      const corePorjectsTypes: Models.libs.LibType[] = ['angular-lib', 'isomorphic-lib'];
+      const projects = corePorjectsTypes.map(t => Project.by(t, v));
+      allCoreProject = [
+        ...projects,
+        ...allCoreProject,
+      ] as any;
+    });
+
+    for (let index = 0; index < allCoreProject.length; index++) {
+      const p = allCoreProject[index];
+      console.log(`${p.genericName} ${p.location}`);
+      const linkedFiles = p.projectLinkedFiles();
+      for (let index2 = 0; index2 < linkedFiles.length; index2++) {
+        const l = linkedFiles[index2];
+        const source = path.join(l.sourceProject.location, l.relativePath);
+        const dest = path.join(p.location, l.relativePath);
+        if (!Helpers.exists(source)) {
+          Helpers.error(`[config] Core source do not exists: ${source}`, false, true);
+        }
+        Helpers.info(`link from: ${source} to ${dest}`);
+        Helpers.createSymLink(source, dest);
+      }
+      await p.filesStructure.struct();
+    }
+  }
 
   async getWokerPort() {
     const portsManager = await this.portsManaber;

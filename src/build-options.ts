@@ -2,11 +2,8 @@
 import chalk from 'chalk';
 import * as path from 'path';
 import { TnpDB } from './wrapper-db.backend';
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-const config = global['ENV'].config as any;
 //#endregion
+import { config } from 'tnp-config';
 import * as _ from 'lodash';
 import { Helpers, Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';

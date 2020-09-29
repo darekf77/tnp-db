@@ -1,12 +1,10 @@
+import { config } from 'tnp-config';
 //#region @backend
 import * as _ from 'lodash';
 
 import { DBBaseEntity } from './base-entity';
 import { CLASS } from 'typescript-class-helpers';
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-const config = global['ENV'].config as any;
+
 
 @CLASS.NAME('CommandInstance')
 export class CommandInstance extends DBBaseEntity {

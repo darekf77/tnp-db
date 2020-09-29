@@ -10,12 +10,8 @@ import { BuildInstance } from '../entites/build-instance';
 import { CLASS } from 'typescript-class-helpers';
 import { BuildOptions } from '../build-options';
 import { DB, TnpDB } from 'tnp-db';
-
 declare const global: any;
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-const config = global['ENV'].config as any;
+import { config } from 'tnp-config';
 
 @CLASS.NAME('BuildsController')
 export class BuildsController extends BaseController {

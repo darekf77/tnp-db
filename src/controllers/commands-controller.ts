@@ -10,11 +10,7 @@ import { CLASS } from 'typescript-class-helpers';
 import { Models } from 'tnp-models';
 import { BuildOptions } from '../build-options';
 import { ProjectInstance } from '../entites/project-instance';
-if (!global['ENV']) {
-  global['ENV'] = {};
-}
-const config = global['ENV'].config as any;
-
+import { config } from 'tnp-config';
 
 @CLASS.NAME('CommandsController')
 export class CommandsController extends BaseController {
