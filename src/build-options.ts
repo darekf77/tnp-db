@@ -141,7 +141,13 @@ export class BuildOptions implements Models.dev.StartForOptions {
       Helpers.log(`[build-options] NO options to merge`)
       return;
     }
-    const argsObj: Partial<BuildOptions> = require('minimist')(split)
+    const argsObj: Partial<BuildOptions> = require('minimist')(split);
+    Object.keys(argsObj).forEach(key => {
+      if (_.isString(key) && (key.length === 1) && _.isBoolean(argsObj[key])) {
+        Helpers.warn(`[build-options] Removing argument: "${key}=${argsObj[key]}`);
+        delete argsObj[key];
+      }
+    });
     // console.log('argsObj', argsObj)
     argsObj.watch = optionsToMerge.watch;
     argsObj.prod = optionsToMerge.prod;
