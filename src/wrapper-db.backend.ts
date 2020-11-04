@@ -174,10 +174,10 @@ export class TnpDB {
 
     if (recreate) {
       Helpers.log('[db] reinit transacton started');
-      if (global['frameworkName'] === 'firedev') {
-        const pathToFiredevMorphi = path.join(path.dirname(this.location), 'morphi');
-        Helpers.removeFolderIfExists(pathToFiredevMorphi);
-      }
+      // if (global['frameworkName'] === 'firedev') {
+      //   const pathToFiredevMorphi = path.join(path.dirname(this.location), 'morphi', config.file.db_json);
+      //   Helpers.removeF(pathToFiredevMorphi);
+      // }
       const previousCommands = await this.crud.getAll<CommandInstance>(CommandInstance);
 
       Helpers.log(`[db][reinit] writing default values`);
