@@ -1,0 +1,28 @@
+{
+  "resources": [
+    "README.md"
+  ],
+  "type": "isomorphic-lib",
+  "version": "v2",
+  "linkedProjects": [],
+  "overrided": {
+    "tsconfig": {
+      "compilerOptions": {
+        "allowJs": true,
+        "noEmit": true
+      }
+    },
+    "ignoreDepsPattern": [],
+    "includeAsDev": [],
+    "includeOnly": [
+      "background-worker-process"
+    ],
+    "dependencies": {},
+    "linkedFolders": []
+  },
+  "libReleaseOptions": {
+    "nodts": false,
+    "obscure": false,
+    "ugly": false
+  }
+}
