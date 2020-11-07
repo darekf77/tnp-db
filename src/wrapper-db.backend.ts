@@ -134,7 +134,7 @@ export class TnpDB {
   }
 
   async triggerChangeForProject(project: Project, channel: Models.realtime.UpdateType) {
-    return await this.crud.worker.triggerChangeOfProject(project.location, channel).received;
+    return await this.crud.worker.triggerChangeOfProject(project.location, channel).received as any; // TODO QUICK_FIX
   }
 
 
