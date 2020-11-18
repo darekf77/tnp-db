@@ -1,4 +1,4 @@
-import { Project } from 'tnp-bundle';
+import { Project } from 'tnp-helpers';
 import * as _ from 'lodash';
 import * as low from 'lowdb';
 import * as path from 'path';
@@ -49,7 +49,7 @@ describe('Db crud', () => {
 
   it('should handle other types that (ports,domain,projects,commands,builds)', async function () {
 
-    let crud = new DbCrud(db())
+    let crud = new  (db())
     const entityName = DBBaseEntity.entityNameFromClassName(CLASS.getName(TestInstance));
     expect(entityName).to.be.eq('tests');
 
