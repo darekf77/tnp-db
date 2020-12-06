@@ -24,5 +24,15 @@
     "nodts": false,
     "obscure": false,
     "ugly": false
-  }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dist:helpers": "rimraf node_modules/tnp-helpers && cpr `pwd`/../tnp-helpers/dist node_modules/tnp-helpers",
+    "dist:models": "rimraf node_modules/tnp-models && cpr `pwd`/../tnp-models/dist node_modules/tnp-models"
+  },
+  "description": "",
+  "license": "MIT",
+  "private": false,
+  "author": "",
+  "homepage": "https://github.com/darekf77/tnp-db#readme"
 }
