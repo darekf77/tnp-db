@@ -39,7 +39,7 @@ import {
 } from './entites';
 //#endregion
 
-import { config } from 'tnp-config';
+import { config, ConfigModels } from 'tnp-config';
 const buildOptionsParams = ['watch', 'appBuild', 'prod'];
 export {
   BuildInstance,
@@ -219,8 +219,8 @@ export class TnpDB {
       projectLinkedFiles: any; // TODO QUICKFIX,
       filesStructure: any;
     })[] = [];
-    (config.coreProjectVersions as Models.libs.FrameworkVersion[]).forEach(v => {
-      const corePorjectsTypes: Models.libs.LibType[] = ['angular-lib', 'isomorphic-lib'];
+    (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
+      const corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
       const projects = corePorjectsTypes.map(t => Project.by(t, v));
       allCoreProject = [
         ...projects,
