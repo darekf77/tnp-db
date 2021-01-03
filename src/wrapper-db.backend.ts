@@ -63,22 +63,8 @@ export class TnpDB {
     return this._instance;
   }
 
-  private static get dbLocation() {
-    let dbFileName = 'db.json';
-    if (global.testMode) {
-      dbFileName = 'db-for-tests.json';
-    }
-    let frameworkName = 'tnp';
-    if (global['frameworkName'] === 'firedev') {
-      frameworkName = 'firedev';
-    }
-
-    const location = path.join(os.homedir(), frameworkName, dbFileName);
-    return location;
-  }
-
   public static Instance(dbLocation?: string) {
-    return this.instance(TnpDB.dbLocation)
+    return this.instance(config.dbLocation)
   }
 
   public static get InstanceSync() {
@@ -452,7 +438,7 @@ export class TnpDB {
 
   //#region projects
   public async getProjects(): Promise<ProjectInstance[]> {
-    let projects = await this.crud.getAll<ProjectInstance>(ProjectInstance)
+    let projects = await this.crud.getAll<ProjectInstance>(ProjectInstance);
     projects = projects.filter(p => !!p.project);
     await this.crud.setBulk(projects, ProjectInstance)
     return projects;

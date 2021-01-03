@@ -120,8 +120,15 @@ export class DbCrud {
 
     await this.db.read();
     var res = (await this.db.get(entityName).value() as T[]);
-    // console.log(`${CLASS.getName(classFN)}, entity ${entityName}, res`, res)
+
     if (_.isArray(res)) {
+
+      // (entityName === 'projects') && Helpers.log(`${CLASS.getName(classFN)}, entity ${entityName}, res
+
+      // ${Helpers.stringify(res)}
+
+      // `);
+
       for (let index = 0; index < res.length; index++) {
         const v = res[index];
         res[index] = (await this.afterRetrive(v, entityName)) as any;
