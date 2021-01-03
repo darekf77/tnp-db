@@ -7,9 +7,9 @@ export abstract class BaseController {
 
   }
 
-  abstract async addExisted() ;
+  abstract addExisted(): Promise<any>;
 
-  abstract async update() ;
+  abstract update(): Promise<any>;
 
 }
 //#endregion
