@@ -129,10 +129,9 @@ export class DbDaemonController
     @Morphi.Http.Param.Body('json') json: object): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
-      this.log(`[setValueToDb] key ${objPath} = <br> <textarea ${TEXT_AREA_CSS} >${
-        JSON.stringify(json, null, 4)
-        }</textarea> `)
-      this.data[objPath] = json;
+      this.log(`[setValueToDb] key ${objPath} = <br> <textarea ${TEXT_AREA_CSS} >${JSON.stringify(json, null, 4)
+        }</textarea> `);
+      _.set(this.data, objPath, json);
       this.saveToFileDebounceAction();
       return this.data[objPath];
     }
@@ -152,10 +151,9 @@ export class DbDaemonController
   getValueFromDb(@Morphi.Http.Param.Query('objPath') objPath: string): Morphi.Response<any> {
     //#region @backendFunc
     return async (req, res) => {
-      this.log(`[getValueFromDb] key ${objPath} = <br> <textarea ${TEXT_AREA_CSS} >${
-        this.data[objPath] ? JSON.stringify(this.data[objPath]) : '<nothing>'
+      this.log(`[getValueFromDb] key ${objPath} = <br> <textarea ${TEXT_AREA_CSS} >${this.data[objPath] ? JSON.stringify(this.data[objPath]) : '<nothing>'
         }</textarea> `)
-      return this.data[objPath];
+      return _.get(this.data, objPath);
     }
     //#endregion
   }
