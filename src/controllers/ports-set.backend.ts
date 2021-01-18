@@ -78,6 +78,10 @@ export class PortsSet {
   //#endregion
 
   //#region reserve free ports for
+  /**
+   * @deprecated
+   * // TODO refactor this
+   */
   public async reserveFreePortsFor(projectLocationOrSystemService: Project | Models.system.SystemService,
     howManyPorts: number = 1) {
     return await this._reserveFreePortsFor(projectLocationOrSystemService, howManyPorts, this.ports);

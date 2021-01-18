@@ -248,6 +248,17 @@ export class DbDaemonController
     //#endregion
   }
 
+  @Morphi.Http.GET('/wholeDb/:pathToData')
+  wholeDbWithPath(@Morphi.Http.Param.Path('pathToData') pathToData: string) {
+    //#region @backendFunc
+    return async () => {
+      this.log(`[wholeDb]`)
+      const data = _.get(this.data, pathToData, {});
+      return JSON.stringify(data);
+    }
+    //#endregion
+  }
+
 
   @Morphi.Http.GET('/entity/:entityname')
   showEntity(@Morphi.Http.Param.Path('entityname') entityname: string): Morphi.Response<string> {
