@@ -54,7 +54,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     const ars = (config.argsReplacementsBuild as { [shortBuildName in string]: string } || {});
     const shortValuesArgs = Object.keys(ars);
     const toCheckArgs = Object.values(ars);
-    const toCheckArgsSimplfied = Object.values(ars).map(c => Helpers.cliTool.paramsFrom(c));
+    const toCheckArgsSimplfied = Object.values(ars).map(c => Helpers.cliTool.simplifiedCmd(c));
 
     const ind = args.findIndex((p, i) => {
       const ends = ((config.coreBuildFrameworkNames as string[] || []).filter(c => {
@@ -65,17 +65,17 @@ export class BuildOptions implements Models.dev.StartForOptions {
       if (nextArgExisted && shortValuesArgs.includes(args[i + 1])) {
         args[i + 1] = ars[args[i + 1]];
       }
-      if (nextArgExisted && toCheckArgsSimplfied.includes(Helpers.cliTool.paramsFrom(args[i + 1]))) {
+      if (nextArgExisted && toCheckArgsSimplfied.includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))) {
         args[i + 1] = toCheckArgs.find(c => {
-          return Helpers.cliTool.paramsFrom(c) === Helpers.cliTool.paramsFrom(args[i + 1]);
+          return Helpers.cliTool.simplifiedCmd(c) === Helpers.cliTool.simplifiedCmd(args[i + 1]);
         });
       }
 
       return ends &&
         nextArgExisted &&
         (toCheckArgs
-          .map(c => Helpers.cliTool.paramsFrom(c))
-          .includes(Helpers.cliTool.paramsFrom(args[i + 1]))
+          .map(c => Helpers.cliTool.simplifiedCmd(c))
+          .includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))
         );
     })
     let prod = false,

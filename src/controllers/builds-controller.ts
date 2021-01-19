@@ -52,10 +52,10 @@ export class BuildsController extends BaseController {
         `, 1);
         const splitCMd = p.cmd.split(' ');
         if (splitCMd.length >= 3) {
-          const tnpParam = Helpers.cliTool.paramsFrom(splitCMd[2]);
+          const tnpParam = Helpers.cliTool.simplifiedCmd(splitCMd[2]);
           if ([
-            Helpers.cliTool.paramsFromFn(DB.$LAST_BUILD),
-            Helpers.cliTool.paramsFromFn(DB.$LAST_BUILD, true),
+            Helpers.cliTool.simplifiedCmd(DB.$LAST_BUILD),
+            Helpers.cliTool.simplifiedCmd(DB.$LAST_BUILD, true),
           ].includes(tnpParam)) {
             const db = await TnpDB.Instance();
             const lastBuildCommand = (await db.getCommands()).find(c => c.location === location && c.isBuildCommand);
@@ -63,8 +63,8 @@ export class BuildsController extends BaseController {
               p.cmd = lastBuildCommand.command;
             }
           } else if ([
-            Helpers.cliTool.paramsFromFn(DB.$LAST),
-            Helpers.cliTool.paramsFromFn(DB.$LAST, true),
+            Helpers.cliTool.simplifiedCmd(DB.$LAST),
+            Helpers.cliTool.simplifiedCmd(DB.$LAST, true),
           ].includes(tnpParam)) {
             const db = await TnpDB.Instance();
             const lastNotBuildCommand = (await db.getCommands()).find(c => c.location === location && !c.isBuildCommand);
