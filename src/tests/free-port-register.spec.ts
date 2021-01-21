@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { describe } from 'mocha'
+import { describe, it } from 'mocha'
 import { expect, use } from 'chai'
 import { Models } from 'tnp-models';
 import { PortInstance } from '../entites/port-instance';

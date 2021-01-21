@@ -6,7 +6,7 @@ import * as fse from 'fs-extra';
 import FileSync = require('lowdb/adapters/FileSync');
 import { CLASS } from 'typescript-class-helpers';
 
-import { describe } from 'mocha';
+import { describe, it } from 'mocha';
 import { expect, use } from 'chai';
 
 // import { Helpers } from 'tnp-helpers';
@@ -20,7 +20,7 @@ import { PortInstance, DomainInstance } from '../entites';
 
 function db() {
   let location = path.join(__dirname, '../../tmp-test-db.json');
-  if(fse.existsSync(location)) {
+  if (fse.existsSync(location)) {
     fse.unlinkSync(location);
   }
   let adapter = new FileSync(location)
@@ -49,7 +49,7 @@ describe('Db crud', () => {
 
   it('should handle other types that (ports,domain,projects,commands,builds)', async function () {
 
-    let crud = new  (db())
+    let crud = new DbCrud(db() as any, void 0)
     const entityName = DBBaseEntity.entityNameFromClassName(CLASS.getName(TestInstance));
     expect(entityName).to.be.eq('tests');
 
@@ -67,7 +67,7 @@ describe('Db crud', () => {
 
   it('should handle ports', async function () {
 
-    let crud = new DbCrud(db())
+    let crud = new DbCrud(db() as any, void 0)
     const entityName = DBBaseEntity.entityNameFromClassName(CLASS.getName(PortInstance));
     expect(entityName).to.be.eq('ports');
 
@@ -87,7 +87,7 @@ describe('Db crud', () => {
 
   it('should handle domains', async function () {
 
-    let crud = new DbCrud(db())
+    let crud = new DbCrud(db() as any, void 0)
     const entityName = DBBaseEntity.entityNameFromClassName(CLASS.getName(DomainInstance));
     expect(entityName).to.be.eq('domains');
 
@@ -106,7 +106,7 @@ describe('Db crud', () => {
 
   it('should handle builds', async function () {
 
-    let crud = new DbCrud(db())
+    let crud = new DbCrud(db() as any, void 0)
     const entityName = DBBaseEntity.entityNameFromClassName(CLASS.getName(BuildInstance));
     expect(entityName).to.be.eq('builds');
 
@@ -125,7 +125,7 @@ describe('Db crud', () => {
 
   it('should handle commands', async function () {
 
-    let crud = new DbCrud(db())
+    let crud = new DbCrud(db() as any, void 0)
     const entityName = DBBaseEntity.entityNameFromClassName(CLASS.getName(CommandInstance));
     expect(entityName).to.be.eq('commands');
 
@@ -144,7 +144,7 @@ describe('Db crud', () => {
 
   it('should handle projects', async function () {
 
-    let crud = new DbCrud(db())
+    let crud = new DbCrud(db() as any, void 0)
     const entityName = DBBaseEntity.entityNameFromClassName(CLASS.getName(ProjectInstance));
     expect(entityName).to.be.eq('projects');
 

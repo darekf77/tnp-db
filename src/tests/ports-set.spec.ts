@@ -1,12 +1,11 @@
 import * as _ from 'lodash';
 import * as path from 'path';
-import { describe } from 'mocha'
+import { describe, it } from 'mocha'
 import { expect, use } from 'chai'
-import { Project } from 'tnp-bundle';
+import { Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';
 import { PortInstance } from '../entites/port-instance';
 import { PortsSet } from '../controllers/ports-set.backend';
-
 
 describe('Ports set tests', () => {
 
