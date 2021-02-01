@@ -177,7 +177,10 @@ export class PortsSet {
     } else {
       portInstacnce = allInstaces.find(p => p.isFree);
       if (!portInstacnce) {
-        Helpers.error(`There is not free port to register service: ${service}`, false, true);
+        Helpers.error(`There is not free port to register service:
+        name: ${service?.name}
+        description: ${service?.description}
+        `, false, true);
       }
     }
     portInstacnce.reservedFor = service;
