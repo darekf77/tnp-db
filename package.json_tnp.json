@@ -17,10 +17,7 @@
     "includeOnly": [
       "background-worker-process"
     ],
-    "dependencies": {
-      "lodash": "3.9.0",
-      "tnp": "0.0.3"
-    },
+    "dependencies": {},
     "linkedFolders": []
   },
   "libReleaseOptions": {
