@@ -27,7 +27,7 @@ export class BuildsController extends BaseController {
 
   private async getExisted(ps: Models.system.PsListInfo[]) {
     // const js = JSON.stringify(ps);
-    let procs = ps.filter(p => p.cmd.split(' ').filter(p => {
+    let procs = ps.filter(p => p.cmd?.split(' ').filter(p => {
 
       const ends = ((config.coreBuildFrameworkNames as string[] || []).filter(c => {
         return p.endsWith(`/bin/${c}`);
@@ -50,7 +50,7 @@ export class BuildsController extends BaseController {
           ppid: ${p.ppid},
 
         `, 1);
-        const splitCMd = p.cmd.split(' ');
+        const splitCMd = p?.cmd ? p.cmd.split(' ') : [];
         if (splitCMd.length >= 3) {
           const tnpParam = Helpers.cliTool.simplifiedCmd(splitCMd[2]);
           if ([

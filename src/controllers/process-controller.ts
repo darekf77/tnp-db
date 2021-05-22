@@ -14,7 +14,7 @@ export class ProcessController extends BaseController {
   async addExisted() {
     Helpers.log(`[db][reinit] adding existed processes`);
     // const ps: PsListInfo[] = await psList();
-    // // console.log(ps.filter(p => p.cmd.split(' ').filter(p => p.endsWith(`/bin/tnp`)).length > 0));
+    // // console.log(ps.filter(p => p.cmd?.split(' ').filter(p => p.endsWith(`/bin/tnp`)).length > 0));
     // const proceses = ps
     //   .filter(p => {
     //     return !!p.cmd.split(' ').find(p => p.endsWith(`/bin/tnp`))

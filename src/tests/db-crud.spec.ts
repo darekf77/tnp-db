@@ -1,8 +1,6 @@
 import { Project } from 'tnp-helpers';
-import * as _ from 'lodash';
 import * as low from 'lowdb';
-import * as path from 'path';
-import * as fse from 'fs-extra';
+import { crossPlatformPath, path, fse, _ } from 'tnp-core';
 import FileSync = require('lowdb/adapters/FileSync');
 import { CLASS } from 'typescript-class-helpers';
 
@@ -19,7 +17,7 @@ import { PortInstance, DomainInstance } from '../entites';
 
 
 function db() {
-  let location = path.join(__dirname, '../../tmp-test-db.json');
+  let location = path.join(crossPlatformPath(__dirname), '../../tmp-test-db.json');
   if (fse.existsSync(location)) {
     fse.unlinkSync(location);
   }

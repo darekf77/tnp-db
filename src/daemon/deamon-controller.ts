@@ -1,5 +1,6 @@
 import { Morphi } from 'morphi';
 //#region @backend
+import { crossPlatformPath } from 'tnp-core';
 import { TnpDB } from '../wrapper-db.backend';
 import { Project, Helpers } from 'tnp-helpers';
 import { BootstrapWorker } from 'background-worker-process';
@@ -190,7 +191,7 @@ export class DbDaemonController
 
   //#region @backend
   get filename() {
-    return __filename;
+    return crossPlatformPath(__filename);
   }
   //#endregion
 
