@@ -1,11 +1,11 @@
 //#region @backend
-import * as _ from 'lodash';
+import { _ } from 'tnp-core';
 
 import { BaseController } from './base-controlller';
 import { DomainInstance, ProjectInstance } from '../entites';
-import { Models } from 'tnp-models';
 import { Project, Helpers } from 'tnp-helpers';
 import { CLASS } from 'typescript-class-helpers';
+import { ConfigModels } from 'tnp-config';
 
 @CLASS.NAME('DomainsController')
 export class DomainsController extends BaseController {
@@ -43,7 +43,7 @@ export class DomainsController extends BaseController {
     await this.crud.setBulk(domains, DomainInstance);
   }
 
-  private addDomain(address: string, environment: Models.env.EnvironmentName,
+  private addDomain(address: string, environment: ConfigModels.EnvironmentName,
     domains: DomainInstance[], project: Project) {
 
     if (!_.isString(address) || address.trim() === '') {
