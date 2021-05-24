@@ -48,6 +48,10 @@ export class DbCrud {
         preventSameContexts: true,
       }
     );
+    if(process.platform === 'win32' && startNew) {
+      Helpers.info('Waiting 5 seconds on windows platofrom...');
+      Helpers.sleep(5);
+    }
     return res;
   }
 
