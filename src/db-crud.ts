@@ -49,8 +49,8 @@ export class DbCrud {
       }
     );
     if(process.platform === 'win32' && startNew) {
-      Helpers.info('Waiting 5 seconds on windows platofrom...');
-      Helpers.sleep(5);
+      Helpers.info('Waiting 10 seconds on windows platofrom...');
+      Helpers.sleep(10);
     }
     return res;
   }
