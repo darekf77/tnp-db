@@ -9,7 +9,8 @@ import { BuildInstance } from '../entites/build-instance';
 // import { BuildOptions } from '../../project/features';
 import { CLASS } from 'typescript-class-helpers';
 import { BuildOptions } from '../build-options';
-import { DB, TnpDB } from 'tnp-db';
+import { TnpDB } from '../wrapper-db.backend';
+import { DB } from '../index';
 declare const global: any;
 import { config } from 'tnp-config';
 

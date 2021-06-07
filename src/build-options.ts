@@ -135,7 +135,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     //#region @backendFunc
     const split = argsString.split(' ');
     // console.log('split', split)
-    const optionsToMerge = !!mainOptions ? mainOptions : this.getMainOptions(split);
+    const optionsToMerge = (!!mainOptions ? mainOptions : this.getMainOptions(split)) as Partial<BuildOptions>;
     // console.log('optionsToMerge', optionsToMerge)
     if (!optionsToMerge) {
       Helpers.log(`[build-options] NO options to merge`)
@@ -156,6 +156,8 @@ export class BuildOptions implements Models.dev.StartForOptions {
     argsObj.nodts = optionsToMerge.nodts;
     argsObj.outDir = optionsToMerge.outDir as any;
     argsObj.appBuild = optionsToMerge.appBuild;
+    argsObj.copyto = (_.isUndefined(argsObj.copyto) && _.isArray(optionsToMerge.copyto)) ?
+      optionsToMerge.copyto : argsObj.copyto;
     argsObj.args = argsString;
 
 
