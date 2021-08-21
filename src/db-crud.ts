@@ -15,6 +15,7 @@ import { DbDaemonController, IDBCrud } from './daemon/deamon-controller';
 import type { TnpDB } from './wrapper-db.backend';
 import { DbUpdateProjectEntity } from './daemon/daemon-entity';
 import { Morphi } from 'morphi';
+import { config } from 'tnp-config';
 
 
 export class DbCrud {
@@ -48,7 +49,7 @@ export class DbCrud {
         preventSameContexts: true,
       }
     );
-    if(process.platform === 'win32' && startNew) {
+    if (process.platform === 'win32' && startNew) {
       Helpers.info('Waiting 10 seconds on windows platofrom...');
       Helpers.sleep(10);
     }
@@ -121,9 +122,53 @@ export class DbCrud {
     const entityName: EntityNames = getEntityNameByClassFN(classFN);
     // console.log(`${CLASS.getName(classFN)} entity name from object`, entityName);
     // process.exit(0)
-
+    // Helpers.log(`db read start`)
     await this.db.read();
-    var res = (await this.db.get(entityName).value() as T[]);
+    // Helpers.log(`db read done`)
+
+    let trys = 0;
+    // const timeoutEnded: { [trys in number]: 'started' | 'expierd' | 'ok' } = {};
+    while (true) {
+      ++trys;
+      // timeoutEnded[trys] = 'started';
+      // Helpers.log(`this.db.get(entityName) start try: ${trys}`)
+      if (trys > 1) {
+        Helpers.info(`
+
+
+        [tnp-bn] RETRYING http request!
+        (await this.db.get(entityName).value() as T[])
+
+        `)
+      }
+      // setTimeout(() => {
+      //   if (timeoutEnded[trys] === 'ok') {
+      //     // Helpers.log('timout OK')
+      //   } else {
+      //     timeoutEnded[trys] = 'expierd';
+      //     Helpers.info(`HTTP REQUST TIMEOUT EXPIRED ${config.CONST.BACKEND_HTTP_REQUEST_TIMEOUT}`)
+      //   }
+      // }, config.CONST.BACKEND_HTTP_REQUEST_TIMEOUT);
+      try {
+        var res = (await this.db.get(entityName).value() as T[]);
+      } catch (error) {
+        console.error(error); // TODO QUICK_FIX for fails first and second ok
+        continue;
+      }
+      if (trys > 1) {
+        Helpers.info(`
+
+       [tnp-db]  ${trys}th TIME REQUEST IS OK
+
+        `);
+      }
+      // if (timeoutEnded[trys] === 'expierd') {
+      //   continue;
+      // }
+      // timeoutEnded[trys] = 'ok';
+      // Helpers.log(`this.db.get(entityName) done`)
+      break;
+    }
 
     if (_.isArray(res)) {
 
@@ -135,7 +180,9 @@ export class DbCrud {
 
       for (let index = 0; index < res.length; index++) {
         const v = res[index];
+        // Helpers.log(`Preparing ${index} ${entityName} start`)
         res[index] = (await this.afterRetrive(v, entityName)) as any;
+        // Helpers.log(`Preparing ${index} ${entityName} done`)
       }
       return res.filter(f => !!f) as any;
     }
@@ -144,14 +191,19 @@ export class DbCrud {
 
   async addIfNotExist(entity: DBBaseEntity): Promise<boolean> {
     const classFN = CLASS.getFromObject(entity)
+    // Helpers.log(`[tnp-db][crud][addIfNotExist] ${classFN}`)
     // console.log(`[addIfNotExist] add if not exist entity: ${CLASS.getNameFromObject(entity)}`)
+    // Helpers.log(`[tnp-db][addIfNotExist] getall start`)
     const all = await this.getAll(CLASS.getFromObject(entity))
+    // Helpers.log(`[tnp-db][addIfNotExist] getall end`)
     const indexFounded = all.findIndex(f => f.isEqual(entity))
     if (indexFounded === -1) {
 
       all.push(entity)
       // console.log(`NOT FOUND - ADD : all.length ${all.length}`,all);
+      // Helpers.log(`[tnp-db][addIfNotExist] setting bulk start`)
       await this.setBulk(all, classFN);
+      // Helpers.log(`[tnp-db][addIfNotExist] setting bulk done `)
       return true;
     }
     // console.log(`FOUNDED ????? - NOT ADD`);
@@ -180,7 +232,7 @@ export class DbCrud {
     } else {
       all.push(entity)
     }
-    Helpers.log('setting all')
+    // Helpers.log('setting all')
     await this.setBulk(all, classFN);
   }
 

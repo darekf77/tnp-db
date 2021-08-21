@@ -35,12 +35,14 @@ export class ProjectsController extends BaseController {
 
 
   async addIfNotExists(projectInstance: ProjectInstance): Promise<boolean> {
-
     if (!projectInstance) {
+      // Helpers.log(`[tnp-db] no project instance `)
       return;
     }
+    // Helpers.info('HELLO')
 
     if (this.recognized.find(p => p.project.location === projectInstance.project.location)) {
+      // Helpers.log(`[tnp-db] already recognized`)
       return;
     }
     this.recognized.push(projectInstance);
@@ -49,24 +51,28 @@ export class ProjectsController extends BaseController {
       && projectInstance.project.distribution) {
       const proj = projectInstance.project.distribution as any as Project;
       if (proj) {
-        // console.log(`ADD STATIC ${proj.location}`)
+        // Helpers.log(`[tnp-db] adding not existent`)
         await this.addIfNotExists(ProjectInstance.from(proj))
       }
     }
 
     if (await this.crud.addIfNotExist(projectInstance)) {
       if (_.isArray(projectInstance.project.preview)) {
+        // Helpers.log(`[tnp-db] adding not existent preview`)
         await this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
       }
       if (_.isArray(projectInstance.project.children)) {
         const children = projectInstance.project.children;
         for (let index = 0; index < children.length; index++) {
           const c = children[index];
+          // Helpers.log(`[tnp-db] adding child`)
           await this.addIfNotExists(ProjectInstance.from(c as any as Project))
         }
       }
+      // Helpers.log(`[tnp-db] adding preview`)
       await this.addIfNotExists(ProjectInstance.from(projectInstance.project.preview as any as Project))
     }
+    // Helpers.log(`[tnp-db] done adding`)
   }
 
   async discoverProjectsInLocation(location: string, searchSubfolders = false) {

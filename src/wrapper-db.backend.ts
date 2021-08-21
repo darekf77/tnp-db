@@ -444,6 +444,7 @@ export class TnpDB {
     return projects;
   }
   public async addProjectIfNotExist(project: Project) {
+    // Helpers.log('[tnp-db] addProjectIfNotExist ')
     await this.__projectsCtrl.addIfNotExists(ProjectInstance.from(project));
   }
   public async killInstancesFrom(projects: Project[]) {
