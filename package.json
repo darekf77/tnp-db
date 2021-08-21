@@ -38,7 +38,7 @@
     "homepage": "https://github.com/darekf77/tnp-db#readme"
   },
   "name": "tnp-db",
-  "version": "0.0.27",
+  "version": "0.0.29",
   "description": "",
   "private": false,
   "scripts": {
