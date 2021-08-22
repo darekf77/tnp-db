@@ -277,7 +277,7 @@ export class TnpDB {
           Helpers.warn('automatic kill of active build instance in static build mode');
           await killAndRemove(existed)
           continue;
-        } else if (existed.pid !== process.pid) {
+        } else if (existed.pid !== process.pid && existed.pid !== ppid) {
           Helpers.log(`
 
           Current process pid: ${process.pid}, current ppid: ${process.ppid}
@@ -348,7 +348,7 @@ export class TnpDB {
     await this.__commandsCtrl.runCommand(cmd);
   }
 
-  public async  getCommands(): Promise<CommandInstance[]> {
+  public async getCommands(): Promise<CommandInstance[]> {
     return await this.crud.getAll(CommandInstance);
   }
 

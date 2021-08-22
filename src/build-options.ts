@@ -144,7 +144,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     const argsObj: Partial<BuildOptions> = require('minimist')(split);
     Object.keys(argsObj).forEach(key => {
       if (_.isString(key) && (key.length === 1) && _.isBoolean(argsObj[key])) {
-        Helpers.warn(`[build-options] Removing argument: "${key}=${argsObj[key]}`);
+        Helpers.log(`[build-options] Removing argument: "${key}=${argsObj[key]}`);
         delete argsObj[key];
       }
     });

@@ -132,15 +132,15 @@ export class DbCrud {
       ++trys;
       // timeoutEnded[trys] = 'started';
       // Helpers.log(`this.db.get(entityName) start try: ${trys}`)
-      if (trys > 1) {
-        Helpers.info(`
+      // if (trys > 1) {
+      //   Helpers.info(`
 
 
-        [tnp-bn] RETRYING http request!
-        (await this.db.get(entityName).value() as T[])
+      //   [tnp-bn] RETRYING http request!
+      //   (await this.db.get(entityName).value() as T[])
 
-        `)
-      }
+      //   `)
+      // }
       // setTimeout(() => {
       //   if (timeoutEnded[trys] === 'ok') {
       //     // Helpers.log('timout OK')
@@ -152,15 +152,11 @@ export class DbCrud {
       try {
         var res = (await this.db.get(entityName).value() as T[]);
       } catch (error) {
-        console.error(error); // TODO QUICK_FIX for fails first and second ok
+        // console.error(error); // TODO QUICK_FIX for fails first and second ok
         continue;
       }
-      if (trys > 1) {
-        Helpers.info(`
-
-       [tnp-db]  ${trys}th TIME REQUEST IS OK
-
-        `);
+      if (trys > 2) {
+        Helpers.warn(`[tnp-db]  ${trys}th TIME REQUEST IS OK`);
       }
       // if (timeoutEnded[trys] === 'expierd') {
       //   continue;
