@@ -268,7 +268,7 @@
     "tnp-cli": "~0.0.17",
     "tnp-config": "~0.0.69",
     "tnp-core": "~0.0.47",
-    "tnp-db": "~0.0.27",
+    "tnp-db": "~0.0.30",
     "tnp-helpers": "~0.0.58",
     "tnp-models": "~0.0.29",
     "tnp-tools": "~0.0.38",
@@ -297,5 +297,5 @@
       "pre-push": "tnp deps:show:if:standalone"
     }
   },
-  "lastBuildTagHash": "4409ab6878c4667583703ce041ddd0df0761e8c8"
+  "lastBuildTagHash": "2a21bbc71d69b443f612049be8e65ccdcd14b379"
 }
