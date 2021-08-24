@@ -40,6 +40,7 @@ import {
 //#endregion
 
 import { config, ConfigModels } from 'tnp-config';
+import { CLI } from 'tnp-cli';
 const buildOptionsParams = ['watch', 'appBuild', 'prod'];
 export {
   BuildInstance,
@@ -58,6 +59,9 @@ export class TnpDB {
     if (!this._instance) {
 
       this._instance = new TnpDB(location)
+      if (!fse.existsSync(location)) {
+        CLI.installEnvironment();
+      }
       await this._instance.init(!fse.existsSync(location))
     }
     return this._instance;
