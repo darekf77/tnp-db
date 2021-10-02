@@ -19,6 +19,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
   uglify?: boolean;
   obscure?: boolean;
   nodts?: boolean;
+  ngbuildonly?: boolean;
   staticBuild?: boolean;
   watchOnly?: boolean;
   skipCopyToSelection?: boolean;
@@ -85,7 +86,8 @@ export class BuildOptions implements Models.dev.StartForOptions {
       nodts = false,
       outDir = 'dist',
       appBuild = false,
-      staticBuild = false;
+      staticBuild = false,
+      ngbuildonly = false
     if (ind >= 0) {
       const cmd = _.kebabCase(args[ind + 1]).split('-').slice(1);
       for (let index = 0; index < cmd.length; index++) {
@@ -108,6 +110,9 @@ export class BuildOptions implements Models.dev.StartForOptions {
         if (cmdPart === 'watch') {
           watch = true;
         }
+        if (cmdPart === 'ngbuildonly') {
+          ngbuildonly = true;
+        }
         if (cmdPart === 'uglify') {
           uglify = true;
         }
@@ -118,7 +123,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
           nodts = true;
         }
       }
-      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts }
+      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts, ngbuildonly }
     }
     //#endregion
   }
@@ -156,6 +161,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     argsObj.nodts = optionsToMerge.nodts;
     argsObj.outDir = optionsToMerge.outDir as any;
     argsObj.appBuild = optionsToMerge.appBuild;
+    argsObj.ngbuildonly = optionsToMerge.ngbuildonly;
     argsObj.copyto = (_.isUndefined(argsObj.copyto) && _.isArray(optionsToMerge.copyto)) ?
       optionsToMerge.copyto : argsObj.copyto;
     argsObj.args = argsString;
