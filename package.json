@@ -242,7 +242,7 @@
     "tnp-cli": "~2.0.19",
     "tnp-config": "~1.0.19",
     "tnp-core": "~1.0.33",
-    "tnp-db": "~0.0.35",
+    "tnp-db": "~0.0.42",
     "tnp-helpers": "~0.0.70",
     "tnp-models": "~0.0.36",
     "tnp-tools": "~0.0.44",
@@ -276,5 +276,5 @@
   "author": "",
   "homepage": "https://github.com/darekf77/tnp-db#readme",
   "name": "tnp-db",
-  "lastBuildTagHash": "e6b1d4c6fb04090ae753fcdd95b5b406162b905c"
+  "lastBuildTagHash": "007ab322d049c01502642976d18a3530c383ef53"
 }
