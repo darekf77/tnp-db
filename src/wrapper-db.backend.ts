@@ -145,7 +145,11 @@ export class TnpDB {
       Helpers.log('[db] recreate db instance');
     }
     if (!Helpers.exists(this.location)) {
+      recreate = true;
       Helpers.writeFile(this.location, '');
+    }
+    if ((Helpers.readFile(this.location) || '').trim() === '') {
+      recreate = true;
     }
     this._adapter = new FileSync(this.location);
 
