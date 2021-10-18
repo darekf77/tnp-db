@@ -180,6 +180,7 @@ export class PortsSet {
         Helpers.error(`There is not free port to register service:
         name: ${service?.name}
         description: ${service?.description}
+        killAlreadyRegisterd: ${options.killAlreadyRegisterd}
         `, false, true);
       }
     }

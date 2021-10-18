@@ -209,6 +209,10 @@ export class TnpDB {
       projectLinkedFiles: any; // TODO QUICKFIX,
       filesStructure: any;
     })[] = [];
+    Helpers.log(`INITING CORE PROJECTS START
+      Project.projects.length ${Project.projects.length}
+
+    `);
     (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
       const corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
       const projects = corePorjectsTypes.map(t => Project.by(t, v));
@@ -220,7 +224,7 @@ export class TnpDB {
 
     for (let index = 0; index < allCoreProject.length; index++) {
       const p = allCoreProject[index];
-      console.log(`${p.genericName} ${p.location}`);
+      Helpers.log(`${p.genericName} ${p.location}`);
       const linkedFiles = p.projectLinkedFiles();
       for (let index2 = 0; index2 < linkedFiles.length; index2++) {
         const l = linkedFiles[index2];
@@ -234,6 +238,7 @@ export class TnpDB {
       }
       await p.filesStructure.struct();
     }
+    Helpers.log('INITING CORE PROJECTS DONE')
   }
 
   async getWokerPort() {
