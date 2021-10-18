@@ -165,8 +165,10 @@ export class TnpDB {
     if (recreate) {
       Helpers.log('[db] reinit transacton started');
       // if (global['frameworkName'] === 'firedev') {
-      //   const pathToFiredevMorphi = path.join(path.dirname(this.location), 'morphi', config.file.db_json);
-      //   Helpers.removeF(pathToFiredevMorphi);
+      //   var logBefore =
+      //   global.hideLog = false;
+      //   // const pathToFiredevMorphi = path.join(path.dirname(this.location), 'morphi', config.file.db_json);
+      //   // Helpers.removeF(pathToFiredevMorphi);
       // }
       const previousCommands = await this.crud.getAll<CommandInstance>(CommandInstance);
 
@@ -187,9 +189,10 @@ export class TnpDB {
       await this.__buildsCtrl.addExisted();
       await this.__processCtrl.addExisted();
 
-      if (config) {
-        await this.initCoreProjects();
+      if (!config) {
+        Helpers.error(`config not available in db`)
       }
+      await this.initCoreProjects();
 
       Helpers.info(`[db][reinit] DONE`);
       Helpers.log('[db] reinit transacton finish');
