@@ -104,9 +104,22 @@ export class TnpDB {
   }
   public async rawSet<T = any>(keyOrEntityName: string, json: T) {
     if (!this.db) {
+      // Helpers.error(`[tnp-db][rawSet] cannot set db not defined`, true, true);
       return;
     }
-    await this.db.set(keyOrEntityName, json as any).write();
+    let trys = 0;
+    while (true) {
+      trys++;
+      try {
+        await this.db.set(keyOrEntityName, json as any).write();
+        break;
+      } catch (error) {
+        if (trys > 2) {
+          Helpers.warn(`[tnp-db][rawSet] http request to db  ${trys}th TIME REQUEST IS OK`);
+        }
+        continue;
+      }
+    }
   }
 
   private crud: DbCrud;
