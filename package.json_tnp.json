@@ -34,5 +34,6 @@
   "license": "MIT",
   "private": false,
   "author": "",
-  "homepage": "https://github.com/darekf77/tnp-db#readme"
+  "homepage": "https://github.com/darekf77/tnp-db#readme",
+  "workerPlugins": {}
 }
