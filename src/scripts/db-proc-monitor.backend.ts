@@ -1,6 +1,5 @@
 import { Helpers } from 'tnp-helpers';
-import { TnpDB } from '../wrapper-db.backend';
-import { CLASS } from 'typescript-class-helpers';
+import { TnpDB } from '../wrapper-db';
 import { Project } from 'tnp-helpers';
 
 export class DBProcMonitor {

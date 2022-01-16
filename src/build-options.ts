@@ -1,10 +1,10 @@
 //#region @backend
-import chalk from 'chalk';
-import * as path from 'path';
-import { TnpDB } from './wrapper-db.backend';
+import { CLI } from 'tnp-cli';
+import { path } from 'tnp-core';
 //#endregion
+import { TnpDB } from './wrapper-db';
 import { config } from 'tnp-config';
-import * as _ from 'lodash';
+import { _ } from 'tnp-core';
 import { Helpers, Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
@@ -12,7 +12,279 @@ import { CLASS } from 'typescript-class-helpers';
 @CLASS.NAME('BuildOptions')
 export class BuildOptions implements Models.dev.StartForOptions {
 
+  //#region static field & getters
   public static PropsToOmmitWhenStringify = ['copyto', 'forClient'];
+  //#endregion
+
+  //#region static fields
+
+  //#region static fields / get main options
+  private static getMainOptions(args: string[]) {
+    //#region @backendFunc
+    const ars = (config.argsReplacementsBuild as { [shortBuildName in string]: string } || {});
+    const shortValuesArgs = Object.keys(ars);
+    const toCheckArgs = Object.values(ars);
+    const toCheckArgsSimplfied = Object.values(ars).map(c => Helpers.cliTool.simplifiedCmd(c));
+
+    const ind = args.findIndex((p, i) => {
+      const ends = ((config.coreBuildFrameworkNames as string[] || []).filter(c => {
+        return p.endsWith(`/${c}`) || p === c;
+      }).length > 0);
+
+      const nextArgExisted = !!args[i + 1];
+      if (nextArgExisted && shortValuesArgs.includes(args[i + 1])) {
+        args[i + 1] = ars[args[i + 1]];
+      }
+      if (nextArgExisted && toCheckArgsSimplfied.includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))) {
+        args[i + 1] = toCheckArgs.find(c => {
+          return Helpers.cliTool.simplifiedCmd(c) === Helpers.cliTool.simplifiedCmd(args[i + 1]);
+        });
+      }
+
+      return ends &&
+        nextArgExisted &&
+        (toCheckArgs
+          .map(c => Helpers.cliTool.simplifiedCmd(c))
+          .includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))
+        );
+    });
+    let prod = false,
+      watch = false,
+      uglify = false,
+      obscure = false,
+      nodts = false,
+      outDir = 'dist',
+      appBuild = false,
+      staticBuild = false,
+      ngbuildonly = false;
+    if (ind >= 0) {
+      const cmd = _.kebabCase(args[ind + 1]).split('-').slice(1);
+      for (let index = 0; index < cmd.length; index++) {
+        const cmdPart = cmd[index];
+        if (cmdPart === 'static') {
+          staticBuild = true;
+        }
+        if (cmdPart === 'lib') {
+          outDir = 'dist';
+        }
+        if (cmdPart === 'dist' || cmdPart === 'bundle') {
+          outDir = cmdPart;
+        }
+        if (cmdPart === 'app') {
+          appBuild = true;
+        }
+        if (cmdPart === 'prod') {
+          prod = true;
+        }
+        if (cmdPart === 'watch') {
+          watch = true;
+        }
+        if (cmdPart === 'ngbuildonly') {
+          ngbuildonly = true;
+        }
+        if (cmdPart === 'uglify') {
+          uglify = true;
+        }
+        if (cmdPart === 'obscure') {
+          obscure = true;
+        }
+        if (cmdPart === 'nodts') {
+          nodts = true;
+        }
+      }
+      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts, ngbuildonly };
+    }
+    //#endregion
+  }
+  //#endregion
+
+  //#region static fields / from
+  public static async from(
+    argsString: string,
+    projectCurrent: Project,
+    mainOptions?: Partial<BuildOptions>,
+    reason?: string
+  ): Promise<BuildOptions> {
+    //#region @backendFunc
+    Helpers.log(`[buildoptions][from] ${reason}`);
+    const split = argsString.split(' ');
+    // console.log('split', split)
+    const optionsToMerge = (!!mainOptions ? mainOptions : this.getMainOptions(split)) as Partial<BuildOptions>;
+    // console.log('optionsToMerge', optionsToMerge)
+    if (!optionsToMerge) {
+      Helpers.log(`[build-options] NO options to merge`);
+      return;
+    }
+    const argsObj: Partial<BuildOptions> = require('minimist')(split);
+    Object.keys(argsObj).forEach(key => {
+      if (_.isString(key) && (key.length === 1) && _.isBoolean(argsObj[key])) {
+        Helpers.log(`[build-options] Removing argument: "${key}=${argsObj[key]}`);
+        delete argsObj[key];
+      }
+    });
+    // console.log('argsObj', argsObj)
+    argsObj.watch = optionsToMerge.watch;
+    argsObj.prod = optionsToMerge.prod;
+    argsObj.uglify = optionsToMerge.uglify;
+    argsObj.obscure = optionsToMerge.obscure;
+    argsObj.nodts = optionsToMerge.nodts;
+    argsObj.outDir = optionsToMerge.outDir as any;
+    argsObj.appBuild = optionsToMerge.appBuild;
+    argsObj.ngbuildonly = optionsToMerge.ngbuildonly;
+    argsObj.copyto = (_.isUndefined(argsObj.copyto) && _.isArray(optionsToMerge.copyto)) ?
+      optionsToMerge.copyto : argsObj.copyto;
+    argsObj.args = argsString;
+
+
+    if (!_.isNil(argsObj.forClient)) {
+      if (_.isString(argsObj.forClient)) {
+        argsObj.forClient = [argsObj.forClient];
+      }
+      if (!!projectCurrent && projectCurrent.isWorkspaceChildProject) {
+        argsObj.forClient = (argsObj.forClient as string[]).map(projectParentChildName => {
+          if (_.isObject(projectParentChildName)) {
+            projectParentChildName = (projectParentChildName as any).name;
+          }
+          // console.log('projectParentChildName', projectParentChildName)
+          const proj = projectCurrent.parent.children.find(c => {
+            return c.name === (projectParentChildName as string) || c.location === (projectParentChildName as string);
+          }) as Project;
+          if (!proj) {
+            Helpers.log(`
+            projectCurrent.parent.children: ${projectCurrent.parent.children.map(c => c.name)}
+            `);
+            Helpers.error(`${CLI.chalk.bold('--forClient argument')}`
+              + ` : Cannot find module ${CLI.chalk.bold(projectParentChildName)} `
+              + `in workspace ${(projectCurrent.parent as Project).genericName}`);
+          }
+          // Helpers.info(`(${projectCurrent.name}) Build only for client ${chalk.bold(projectParentChildName)}`)
+          return proj;
+        }) as any;
+      }
+    }
+    if (!_.isArray(argsObj.forClient)) {
+      argsObj.forClient = [];
+    }
+    argsObj.forClient = Helpers.arrays.uniqArray<Project>(argsObj.forClient, 'location');
+
+    if (!_.isNil(argsObj.copyto)) {
+      if (_.isString(argsObj.copyto)) {
+        argsObj.copyto = [argsObj.copyto];
+      }
+
+      for (let index = 0; index < argsObj.copyto.length; index++) {
+        const argPath = argsObj.copyto[index] as any;
+        //     // console.log('argPath', argPath)
+        //     // console.log('raw arg', args)
+
+        //     // console.log('path', argPath)
+        const project = (_.isString(argPath && argPath.location)
+          ? argPath
+          : await getProjectFromArgPath(argPath, projectCurrent));
+
+        if (!project) {
+          Helpers.error(`[build-options] Incorrect "copyto" values. Path doesn't contain `
+            + `${config.frameworkName} type project: ${argPath}`, false, true);
+        }
+
+        argsObj.copyto[index] = project as any;
+      }
+      argsObj.copyto = (argsObj.copyto as any[]).filter(p => !!p);
+    }
+    if (!_.isArray(argsObj.copyto)) {
+      argsObj.copyto = [];
+    }
+
+    argsObj.copyto = Helpers.arrays.uniqArray<Project>(argsObj.copyto, 'location');
+
+    argsObj.onlyWatchNoBuild = !!argsObj.onlyWatchNoBuild;
+    argsObj.genOnlyClientCode = !!argsObj.genOnlyClientCode;
+
+    const result = _.merge(new BuildOptions(), argsObj) as BuildOptions;
+    // console.log(result)
+    return result;
+    //#endregion
+  }
+  //#endregion
+
+  //#region static fields / export to cmd
+  public static async exportToCMD(buildOptions: BuildOptions): Promise<string> {
+    //#region @backendFunc
+    if (!buildOptions) {
+      return '';
+    }
+    const { appBuild = false, outDir, watch = false,
+      copyto, baseHref,
+      forClient,
+      prod = false,
+      uglify = false,
+      obscure = false,
+      nodts = false,
+      staticBuild = false,
+      skipCopyToSelection = false,
+      genOnlyClientCode, onlyBackend, onlyWatchNoBuild
+    } = buildOptions;
+    let args = [];
+
+    if (_.isArray(copyto)) {
+      const argsFromCopyto = [];
+      for (let index = 0; index < copyto.length; index++) {
+        const argPath = copyto[index] as any;
+        const project = (_.isString(argPath && argPath.location) ? argPath
+          : await getProjectFromArgPath(argPath));
+        argsFromCopyto.push(`--copyto ${project.location}`);
+      }
+      args = args.concat(argsFromCopyto);
+    }
+
+    if (_.isArray(forClient)) {
+      const argsFromForClient = [];
+      for (let index = 0; index < forClient.length; index++) {
+        const argPath = forClient[index] as any;
+        const project = (_.isString(argPath && argPath.location) ? argPath
+          : await getProjectFromArgPath(argPath));
+        argsFromForClient.push(`--forClient ${project.location}`);
+      }
+      args = args.concat(argsFromForClient);
+    }
+
+    if (genOnlyClientCode) {
+      args.push('--genOnlyClientCode');
+    }
+
+    if (onlyBackend) {
+      args.push('--onlyBackend');
+    }
+
+    if (onlyWatchNoBuild) {
+      args.push('--onlyWatchNoBuild');
+    }
+
+    if (baseHref && baseHref.trim() !== '') {
+      args.push(`--baseHref ${baseHref}`);
+    }
+
+    if (skipCopyToSelection) {
+      `--skipCopyToSelection true`;
+    }
+
+    return `${config.frameworkName} ` +
+      `${staticBuild ? 'static:' : ''}` +
+      `build:` +
+      `${appBuild ? 'app' : outDir}` +
+      `${prod ? ':prod' : ''}` +
+      `${watch ? ':watch' : ''}` +
+      `${uglify ? ':uglify' : ''}` +
+      `${obscure ? ':obscure' : ''}` +
+      `${nodts ? ':nodts' : ''}` +
+      ` ${args.join(' ')}`;
+    //#endregion
+  }
+  //#endregion
+
+  //#endregion
+
+  //#endregion
   prod?: boolean;
   outDir?: Models.dev.BuildDir;
   watch?: boolean;
@@ -49,266 +321,9 @@ export class BuildOptions implements Models.dev.StartForOptions {
    */
   forClient?: Project[] | string[];
 
-
-  private static getMainOptions(args: string[]) {
-    //#region @backendFunc
-    const ars = (config.argsReplacementsBuild as { [shortBuildName in string]: string } || {});
-    const shortValuesArgs = Object.keys(ars);
-    const toCheckArgs = Object.values(ars);
-    const toCheckArgsSimplfied = Object.values(ars).map(c => Helpers.cliTool.simplifiedCmd(c));
-
-    const ind = args.findIndex((p, i) => {
-      const ends = ((config.coreBuildFrameworkNames as string[] || []).filter(c => {
-        return p.endsWith(`/${c}`) || p == c;
-      }).length > 0);
-
-      const nextArgExisted = !!args[i + 1];
-      if (nextArgExisted && shortValuesArgs.includes(args[i + 1])) {
-        args[i + 1] = ars[args[i + 1]];
-      }
-      if (nextArgExisted && toCheckArgsSimplfied.includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))) {
-        args[i + 1] = toCheckArgs.find(c => {
-          return Helpers.cliTool.simplifiedCmd(c) === Helpers.cliTool.simplifiedCmd(args[i + 1]);
-        });
-      }
-
-      return ends &&
-        nextArgExisted &&
-        (toCheckArgs
-          .map(c => Helpers.cliTool.simplifiedCmd(c))
-          .includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))
-        );
-    })
-    let prod = false,
-      watch = false,
-      uglify = false,
-      obscure = false,
-      nodts = false,
-      outDir = 'dist',
-      appBuild = false,
-      staticBuild = false,
-      ngbuildonly = false
-    if (ind >= 0) {
-      const cmd = _.kebabCase(args[ind + 1]).split('-').slice(1);
-      for (let index = 0; index < cmd.length; index++) {
-        const cmdPart = cmd[index];
-        if (cmdPart === 'static') {
-          staticBuild = true;
-        }
-        if (cmdPart === 'lib') {
-          outDir = 'dist';
-        }
-        if (cmdPart === 'dist' || cmdPart === 'bundle') {
-          outDir = cmdPart;
-        }
-        if (cmdPart === 'app') {
-          appBuild = true;
-        }
-        if (cmdPart === 'prod') {
-          prod = true;
-        }
-        if (cmdPart === 'watch') {
-          watch = true;
-        }
-        if (cmdPart === 'ngbuildonly') {
-          ngbuildonly = true;
-        }
-        if (cmdPart === 'uglify') {
-          uglify = true;
-        }
-        if (cmdPart === 'obscure') {
-          obscure = true;
-        }
-        if (cmdPart === 'nodts') {
-          nodts = true;
-        }
-      }
-      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts, ngbuildonly }
-    }
-    //#endregion
-  }
-
-  public static async from(
-    argsString: string,
-    projectCurrent: Project,
-    mainOptions?: Partial<BuildOptions>,
-    reason?: string
-  ): Promise<BuildOptions> {
-
-    Helpers.log(`[buildoptions][from] ${reason}`);
-
-    //#region @backendFunc
-    const split = argsString.split(' ');
-    // console.log('split', split)
-    const optionsToMerge = (!!mainOptions ? mainOptions : this.getMainOptions(split)) as Partial<BuildOptions>;
-    // console.log('optionsToMerge', optionsToMerge)
-    if (!optionsToMerge) {
-      Helpers.log(`[build-options] NO options to merge`)
-      return;
-    }
-    const argsObj: Partial<BuildOptions> = require('minimist')(split);
-    Object.keys(argsObj).forEach(key => {
-      if (_.isString(key) && (key.length === 1) && _.isBoolean(argsObj[key])) {
-        Helpers.log(`[build-options] Removing argument: "${key}=${argsObj[key]}`);
-        delete argsObj[key];
-      }
-    });
-    // console.log('argsObj', argsObj)
-    argsObj.watch = optionsToMerge.watch;
-    argsObj.prod = optionsToMerge.prod;
-    argsObj.uglify = optionsToMerge.uglify;
-    argsObj.obscure = optionsToMerge.obscure;
-    argsObj.nodts = optionsToMerge.nodts;
-    argsObj.outDir = optionsToMerge.outDir as any;
-    argsObj.appBuild = optionsToMerge.appBuild;
-    argsObj.ngbuildonly = optionsToMerge.ngbuildonly;
-    argsObj.copyto = (_.isUndefined(argsObj.copyto) && _.isArray(optionsToMerge.copyto)) ?
-      optionsToMerge.copyto : argsObj.copyto;
-    argsObj.args = argsString;
-
-
-    if (!_.isNil(argsObj.forClient)) {
-      if (_.isString(argsObj.forClient)) {
-        argsObj.forClient = [argsObj.forClient]
-      }
-      if (!!projectCurrent && projectCurrent.isWorkspaceChildProject) {
-        argsObj.forClient = (argsObj.forClient as string[]).map(projectParentChildName => {
-          if (_.isObject(projectParentChildName)) {
-            projectParentChildName = (projectParentChildName as any).name;
-          }
-          // console.log('projectParentChildName', projectParentChildName)
-          const proj = projectCurrent.parent.children.find(c => {
-            return c.name === (projectParentChildName as string) || c.location === (projectParentChildName as string)
-          }) as Project;
-          if (!proj) {
-            Helpers.log(`
-            projectCurrent.parent.children: ${projectCurrent.parent.children.map(c => c.name)}
-            `)
-            Helpers.error(`${chalk.bold('--forClient argument')} : Cannot find module ${chalk.bold(projectParentChildName)} `
-              + `in workspace ${(projectCurrent.parent as Project).genericName}`);
-          }
-          // Helpers.info(`(${projectCurrent.name}) Build only for client ${chalk.bold(projectParentChildName)}`)
-          return proj;
-        }) as any;
-      }
-    }
-    if (!_.isArray(argsObj.forClient)) {
-      argsObj.forClient = []
-    }
-    argsObj.forClient = Helpers.arrays.uniqArray<Project>(argsObj.forClient, 'location');
-
-    if (!_.isNil(argsObj.copyto)) {
-      if (_.isString(argsObj.copyto)) {
-        argsObj.copyto = [argsObj.copyto]
-      }
-
-      for (let index = 0; index < argsObj.copyto.length; index++) {
-        let argPath = argsObj.copyto[index] as any;
-        //     // console.log('argPath', argPath)
-        //     // console.log('raw arg', args)
-
-        //     // console.log('path', argPath)
-        let project = (_.isString(argPath && argPath.location) ? argPath : await getProjectFromArgPath(argPath, projectCurrent));
-
-        if (!project) {
-          Helpers.error(`[build-options] Incorrect "copyto" values. Path doesn't contain ${config.frameworkName} type project: ${argPath}`, false, true)
-        }
-
-        argsObj.copyto[index] = project as any;
-      }
-      argsObj.copyto = (argsObj.copyto as any[]).filter(p => !!p);
-    }
-    if (!_.isArray(argsObj.copyto)) {
-      argsObj.copyto = []
-    }
-
-    argsObj.copyto = Helpers.arrays.uniqArray<Project>(argsObj.copyto, 'location');
-
-    argsObj.onlyWatchNoBuild = !!argsObj.onlyWatchNoBuild;
-    argsObj.genOnlyClientCode = !!argsObj.genOnlyClientCode;
-
-    const result = _.merge(new BuildOptions(), argsObj) as BuildOptions;
-    // console.log(result)
-    return result;
-    //#endregion
-  }
-
-  public static async exportToCMD(buildOptions: BuildOptions): Promise<string> {
-    //#region @backendFunc
-    if (!buildOptions) {
-      return '';
-    }
-    const { appBuild = false, outDir, watch = false,
-      copyto, baseHref,
-      forClient,
-      prod = false,
-      uglify = false,
-      obscure = false,
-      nodts = false,
-      staticBuild = false,
-      skipCopyToSelection = false,
-      genOnlyClientCode, onlyBackend, onlyWatchNoBuild
-    } = buildOptions;
-    let args = [];
-
-    if (_.isArray(copyto)) {
-      const argsFromCopyto = [];
-      for (let index = 0; index < copyto.length; index++) {
-        const argPath = copyto[index] as any;
-        const project = (_.isString(argPath && argPath.location) ? argPath
-          : await getProjectFromArgPath(argPath));
-        argsFromCopyto.push(`--copyto ${project.location}`);
-      }
-      args = args.concat(argsFromCopyto)
-    }
-
-    if (_.isArray(forClient)) {
-      const argsFromForClient = []
-      for (let index = 0; index < forClient.length; index++) {
-        const argPath = forClient[index] as any;
-        const project = (_.isString(argPath && argPath.location) ? argPath
-          : await getProjectFromArgPath(argPath));
-        argsFromForClient.push(`--forClient ${project.location}`);
-      }
-      args = args.concat(argsFromForClient);
-    }
-
-    if (genOnlyClientCode) {
-      args.push('--genOnlyClientCode')
-    }
-
-    if (onlyBackend) {
-      args.push('--onlyBackend')
-    }
-
-    if (onlyWatchNoBuild) {
-      args.push('--onlyWatchNoBuild')
-    }
-
-    if (baseHref && baseHref.trim() !== '') {
-      args.push(`--baseHref ${baseHref}`)
-    }
-
-    if (skipCopyToSelection) {
-      `--skipCopyToSelection true`
-    }
-
-    return `${config.frameworkName} ` +
-      `${staticBuild ? 'static:' : ''}` +
-      `build:` +
-      `${appBuild ? 'app' : outDir}` +
-      `${prod ? ':prod' : ''}` +
-      `${watch ? ':watch' : ''}` +
-      `${uglify ? ':uglify' : ''}` +
-      `${obscure ? ':obscure' : ''}` +
-      `${nodts ? ':nodts' : ''}` +
-      ` ${args.join(' ')}`
-    //#endregion
-  }
-
   public toString = () => {
     return JSON.stringify(_.mergeWith({}, _.omit(this, BuildOptions.PropsToOmmitWhenStringify)), null, 4);
-  };
+  }
 
 
 }

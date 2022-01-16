@@ -1,21 +1,30 @@
-//#region @backend
-import { _ } from 'tnp-core';
+//#region imports
 
-import { BaseController } from './base-controlller';
-import { DomainInstance, ProjectInstance } from '../entites';
+//#region isomorphic
+import { _ } from 'tnp-core';
 import { Project, Helpers } from 'tnp-helpers';
 import { CLASS } from 'typescript-class-helpers';
 import { ConfigModels } from 'tnp-config';
+import { Models, BaseController } from 'tnp-models';
+import { DbCrud, ProjectInstance } from 'firedev-crud';
+//#endregion
+import { DomainInstance } from '../entites';
+
+//#endregion
 
 @CLASS.NAME('DomainsController')
-export class DomainsController extends BaseController {
+export class DomainsController extends BaseController<DbCrud> {
+  //#region api
 
+  //#region api / update
   async update() {
 
   }
+  //#endregion
 
-
+  //#region api / add existed
   async addExisted() {
+    //#region @backend
     Helpers.log(`[db][reinit] adding existed domains`);
     const domains: DomainInstance[] = [];
 
@@ -34,35 +43,42 @@ export class DomainsController extends BaseController {
       if (project && project.env) {
         project.env.configsFromJs.forEach(c => {
           this.addDomain(c.domain, c.name, domains, project as any);
-        })
+        });
       }
-
-
-    })
+    });
 
     await this.crud.setBulk(domains, DomainInstance);
+    //#endregion
   }
+  //#endregion
 
-  private addDomain(address: string, environment: ConfigModels.EnvironmentName,
-    domains: DomainInstance[], project: Project) {
-
+  //#region api / add domain
+  private addDomain(
+    address: string,
+    environment: ConfigModels.EnvironmentName,
+    domains: DomainInstance[],
+    project: Project
+  ) {
+    //#region @backend
     if (!_.isString(address) || address.trim() === '') {
-      return
+      return;
     }
 
     const existed = domains.find(d => d.address === address);
     if (existed) {
       if (existed.declaredIn.filter(d => d.environment === environment
         && d.project === d.project).length === 0) {
-        existed.declaredIn.push({ project, environment })
+        existed.declaredIn.push({ project, environment });
       }
     } else {
-      const domain = new DomainInstance()
-      domain.address = address;
-      domain.declaredIn = [{ project, environment }]
-      domains.push(domain)
+      const domain = DomainInstance.from(address);
+      domain.declaredIn = [{ project, environment }];
+      domains.push(domain);
     }
+    //#endregion
   }
+  //#endregion
 
+  //#endregion
 }
-//#endregion
+

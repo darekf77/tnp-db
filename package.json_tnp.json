@@ -15,7 +15,7 @@
     "ignoreDepsPattern": [],
     "includeAsDev": [],
     "includeOnly": [
-      "background-worker-process"
+      "firedev-crud-deamon"
     ],
     "dependencies": {},
     "linkedFolders": []

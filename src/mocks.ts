@@ -1,8 +1,5 @@
 //#region @backend
-import * as path from 'path';
-import * as fse from 'fs-extra';
-import * as _ from 'lodash';
-import * as rimraf from 'rimraf';
+import { path, fse, _, rimraf } from 'tnp-core';
 import { CLASS } from 'typescript-class-helpers';
 
 export function mocks() {
@@ -23,7 +20,7 @@ export function mocks() {
         fse.existsSync(path.join(location, 'package.json'))
       ) {
         const inst = new Project(location);
-        if(_.isUndefined(Project.projects.find( p => p.location === inst.location ))) {
+        if (_.isUndefined(Project.projects.find(p => p.location === inst.location))) {
           Project.projects.push(inst);
         }
 

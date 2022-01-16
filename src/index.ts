@@ -1,8 +1,8 @@
-export * from './daemon';
+export { DbDaemonController } from 'firedev-crud-deamon';
 export * from './build-options';
-//#region @backend
-export * from './wrapper-db.backend';
-import * as _DB from './scripts/DB.backend';
+export * from './wrapper-db';
+
+import * as _DB from './scripts/DB';
 
 export const DB = _DB.default;
 
@@ -13,9 +13,8 @@ export const CLI_FUNCTIONS = [
   _DB.$SHOW_LAST,
   DB.$DB,
   DB.$DB_REINIT,
-]
+];
 
-//#endregion
 export function asdas() {
 
 }

@@ -1,11 +1,8 @@
-//#region @backend
-import { ProcessInstance, ProcessMetaInfo } from './entites/process-instance';
+import { ProcessInstance, IProcessInstanceInfo } from './entites/process-instance';
 
 export type ProcessBoundAction = (
   process: ProcessInstance
 ) => Promise<{
-  metaInfo: ProcessMetaInfo,
+  metaInfo: IProcessInstanceInfo,
   relation1TO1entityId?: number
-}>
-
-//#endregion
+}>;

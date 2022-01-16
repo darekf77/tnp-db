@@ -1,7 +1,7 @@
-import * as  psList from 'ps-list';
+import { psList } from 'tnp-core';
 import { Models } from 'tnp-models';
 import { Helpers } from 'tnp-helpers';
-import { TnpDB } from '../wrapper-db.backend';
+import { TnpDB } from '../wrapper-db';
 
 export class DBMonitTop {
 

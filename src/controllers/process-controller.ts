@@ -1,17 +1,20 @@
-//#region @backend
-import * as _ from 'lodash';
-import * as  psList from 'ps-list';
-
-import { BaseController } from './base-controlller';
-import { ProcessInstance, ProcessMetaInfo } from '../entites';
-import { Models } from 'tnp-models';
+//#region imports
+//#region isomorphic
+import { _ } from 'tnp-core';
+import { Models, BaseController } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
 import { Helpers } from 'tnp-helpers';
+import { DbCrud } from 'firedev-crud';
+//#endregion
+import { ProcessInstance, IProcessInstanceInfo } from '../entites';
+//#endregion
 
 @CLASS.NAME('ProcessController')
-export class ProcessController extends BaseController {
+export class ProcessController extends BaseController<DbCrud> {
 
+  //#region add existed
   async addExisted() {
+    //#region @backend
     Helpers.log(`[db][reinit] adding existed processes`);
     // const ps: PsListInfo[] = await psList();
     // // console.log(ps.filter(p => p.cmd?.split(' ').filter(p => p.endsWith(`/bin/tnp`)).length > 0));
@@ -28,9 +31,13 @@ export class ProcessController extends BaseController {
     //   })
 
     this.crud.setBulk([], ProcessInstance);
+    //#endregion
   }
+  //#endregion
 
+  //#region update
   async update() {
+    //#region @backend
     // const ps: PsListInfo[] = await psList();
     // const all = this.crud.getAll<ProcessInstance>(ProcessInstance);
     // // console.log('[UPDATE BUILDS] BEFORE FILTER', all.map(c => c.pid))
@@ -46,10 +53,13 @@ export class ProcessController extends BaseController {
     // // console.log('[UPDATE BUILDS] AFTER FILTER', filteredBuilds.map(c => c.pid))
     // // process.exit(0)
     // this.crud.setBulk(filteredBuilds, ProcessInstance);
+    //#endregion
   }
+  //#endregion
 
-
-  async findProcessByInfo(metaInfo: ProcessMetaInfo) {
+  //#region find process by info
+  async findProcessByInfo(metaInfo: IProcessInstanceInfo) {
+    //#region @backendFunc
     const { className, entityId, entityProperty } = metaInfo;
     const proceses = await this.crud.getAll<ProcessInstance>(ProcessInstance);
     let existed: ProcessInstance;
@@ -59,24 +69,32 @@ export class ProcessController extends BaseController {
         p.info.className === className &&
         p.info.entityId === entityId &&
         p.info.entityProperty === entityProperty
-      )
-    })
+      );
+    });
     return existed;
+    //#endregion
   }
+  //#endregion
 
-  async boundProcess(metaInfo: ProcessMetaInfo, relation1TO1entityId?: number): Promise<ProcessInstance> {
+  //#region bound process
+  async boundProcess(
+    metaInfo: IProcessInstanceInfo,
+    relation1TO1entityId?: number
+  )
+    : Promise<ProcessInstance> {
+    //#region @backendFunc
     let existed: ProcessInstance;
     let saveToDB = true;
 
     if (!existed) {
-      existed = await this.findProcessByInfo(metaInfo)
+      existed = await this.findProcessByInfo(metaInfo);
       if (existed && !_.isNumber(relation1TO1entityId)) {
         saveToDB = false;
       }
     }
 
     if (!existed) {
-      existed = new ProcessInstance()
+      existed = ProcessInstance.from();
       saveToDB = true;
     }
 
@@ -91,12 +109,13 @@ export class ProcessController extends BaseController {
     // existed.pid = metaInfo.pid;
 
     if (saveToDB) {
-      await this.crud.set(existed)
+      await this.crud.set(existed);
     }
     return existed;
+    //#endregion
   }
+  //#endregion
 
 
 }
 
-//#endregion

@@ -1,3 +1,3 @@
 //#region @backend
-export * from './DB.backend';
+export * from './DB';
 //#endregion

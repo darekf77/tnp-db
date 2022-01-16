@@ -1,11 +1,9 @@
 //#region @notForNpm
 //#region @backend
-import * as path from 'path';
-import * as fse from 'fs-extra';
-import * as rimraf from 'rimraf';
+import { path, fse, rimraf } from 'tnp-core';
 import { CLASS } from 'typescript-class-helpers';
 import { mocks } from './mocks';
-import { Helpers } from 'tnp-helpers'
+import { Helpers } from 'tnp-helpers';
 
 const dbPath = path.join(process.cwd(), 'tmp-db.json');
 
@@ -14,9 +12,9 @@ export const config = {
   pathes: {
     tmp_transaction_pid_txt: path.join(process.cwd(), 'tmp-transaciton-pid.txt')
   }
-}
+};
 
-import { TnpDB } from './wrapper-db.backend';
+import { TnpDB } from './wrapper-db';
 
 import { DB } from './index';
 

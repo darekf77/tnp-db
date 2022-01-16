@@ -1,46 +1,55 @@
+//#region imports
 //#region @backend
-import * as _ from 'lodash';
-import * as  psList from 'ps-list';
-
-import { BaseController } from './base-controlller';
+import { psList } from 'tnp-core';
+//#endregion
+//#region isomorphic
 import { Helpers, Project } from 'tnp-helpers';
-import { Models } from 'tnp-models';
-import { BuildInstance } from '../entites/build-instance';
-// import { BuildOptions } from '../../project/features';
+import { _ } from 'tnp-core';
+import { Models, BaseController } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
-import { BuildOptions } from '../build-options';
-import { TnpDB } from '../wrapper-db.backend';
-import { DB } from '../index';
-declare const global: any;
 import { config } from 'tnp-config';
+import { DbCrud } from 'firedev-crud';
+//#endregion
+import { BuildInstance } from '../entites/build-instance';
+import { BuildOptions } from '../build-options';
+import { TnpDB } from '../wrapper-db';
+import { DB } from '../index';
+//#endregion
 
 @CLASS.NAME('BuildsController')
-export class BuildsController extends BaseController {
+export class BuildsController extends BaseController<DbCrud> {
+  //#region api
 
+  //#region api / update
   /**
    * Update if proceses exists (by pid)
    */
   async update() {
+    //#region @backend
     const ps: Models.system.PsListInfo[] = await psList();
     const filteredBuilds = await this.getExisted(ps);
     await this.crud.setBulk(filteredBuilds, BuildInstance);
+    //#endregion
   }
+  //#endregion
 
+  //#region api / get existed
   private async getExisted(ps: Models.system.PsListInfo[]) {
+    //#region @backendFunc
     // const js = JSON.stringify(ps);
-    let procs = ps.filter(p => p.cmd?.split(' ').filter(p => {
+    const procs = ps.filter(p => p.cmd?.split(' ').filter(p => {
 
       const ends = ((config.coreBuildFrameworkNames as string[] || []).filter(c => {
         return p.endsWith(`/bin/${c}`);
-      }).length > 0)
+      }).length > 0);
 
       return ends;
-    }).length > 0)
+    }).length > 0);
     for (let index = 0; index < procs.length; index++) {
       const p = procs[index];
       const location = Helpers.getWorkingDirOfProcess(p.pid);
 
-      const project = Project.From(location)
+      const project = Project.From(location);
       if (project) {
 
         Helpers.log(`
@@ -74,13 +83,13 @@ export class BuildsController extends BaseController {
             }
           }
         }
-        const b = new BuildInstance({
+        const b = await (BuildInstance.from({
           location,
           pid: p.pid,
           cmd: p.cmd,
           ppid: p.ppid,
-        });
-        await b.prepare('get existed')
+        })).prepareInstance('get existed');
+
         // console.log('result build instance', b)
         procs[index] = b as any;
       } else {
@@ -90,39 +99,53 @@ export class BuildsController extends BaseController {
     return (procs as any as BuildInstance[])
       .filter(b => !!b)
       .filter(b => b.isTnpProjectBuild);
+    //#endregion
   }
+  //#endregion
 
+  //#region api / add existed
   async addExisted() {
+    //#region @backend
     Helpers.log(`[db][reinit] adding existed builds`);
     await this.update();
+    //#endregion
   }
+  //#endregion
 
+  //#region api / kill instances from projects
   async killInstancesFrom(projects: Project[]) {
-    let projectsLocations = projects.map(p => p.location);
+    //#region @backend
+    const projectsLocations = projects.map(p => p.location);
     (await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[])
       .filter(b => projectsLocations.includes(b.project.location))
       .forEach(b => {
         try {
-          b.kill()
+          b.kill();
         } catch (error) {
-          Helpers.warn(`Not able to kill ${b.brief}`)
+          Helpers.warn(`Not able to kill ${b.brief}`);
         }
-      })
-
+      });
+    //#endregion
   }
+  //#endregion
 
+  //#region api / add
   async add(project: Project, buildOptions: BuildOptions, pid: number, ppid: number) {
-    const currentB = new BuildInstance({
+    //#region @backend
+    const currentB = await (BuildInstance.from({
       buildOptions,
       pid,
       location: project.location,
       ppid
-    });
-    await currentB.prepare('db add');
+    })).prepareInstance('db add');
     await this.crud.addIfNotExist(currentB);
+    //#endregion
   }
+  //#endregion
 
+  //#region api / dist build founded for
   async distBuildFoundedFor(project: Project) {
+    //#region @backend
     await this.update();
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const result = all.find(b => {
@@ -146,9 +169,13 @@ export class BuildsController extends BaseController {
     });
     // console.log(`result: ${!!result}`)
     return result;
+    //#endregion
   }
+  //#endregion
 
+  //#region api / app build founded for
   async appBuildFoundedFor(project: Project) {
+    //#region @backendFunc
     await this.update();
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const possibleLocation = [];
@@ -181,27 +208,43 @@ export class BuildsController extends BaseController {
     //    `
     // }))
     return result;
+    //#endregion
   }
+  //#endregion
 
+  //#region api / get existed pid
   async getExistedByPid(pid: number) {
+    //#region @backend
     await this.update();
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     return all.find(a => a.pid === pid);
+    //#endregion
   }
+  //#endregion
 
-  async getExistedForOptions(project: Project, buildOptions: BuildOptions, pid?: number, ppid?: number): Promise<BuildInstance> {
+  //#region api / get existed for options
+  async getExistedForOptions(
+    project: Project,
+    buildOptions: BuildOptions,
+    pid?: number,
+    ppid?: number
+  ): Promise<BuildInstance> {
+    //#region @backendFunc
     await this.update();
-    const currentB = new BuildInstance({ buildOptions, pid, location: project.location, ppid });
-    await currentB.prepare('getExistedForOptions');
-    const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[]
+    const currentB = await (BuildInstance.from({ buildOptions, pid, location: project.location, ppid }))
+      .prepareInstance('getExistedForOptions');
+
+    const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const existed = all.find(b => {
       return b.isEqual(currentB);
-    })
+    });
     if (_.isObject(existed)) {
       return existed;
     }
+    //#endregion
   }
+  //#endregion
 
-
+  //#endregion
 }
-//#endregion
+
