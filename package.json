@@ -16,7 +16,7 @@
       "ignoreDepsPattern": [],
       "includeAsDev": [],
       "includeOnly": [
-        "firedev-crud-deamon"
+        "background-worker-process"
       ],
       "dependencies": {},
       "linkedFolders": []
@@ -105,7 +105,6 @@
     "axios": "0.17.1",
     "babel-cli": "6.26.0",
     "babel-preset-env": "1.7.0",
-    "background-worker-process": "~0.0.35",
     "bcryptjs": "2.4.3",
     "body-parser": "1.18.2",
     "bootstrap": "4.3.1",
@@ -275,5 +274,8 @@
   "private": false,
   "author": "",
   "homepage": "https://github.com/darekf77/tnp-db#readme",
-  "name": "tnp-db"
+  "name": "tnp-db",
+  "recreatedFrom": {
+    "tnp.json": true
+  }
 }
