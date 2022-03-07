@@ -11,5 +11,6 @@
   "private": false,
   "author": "",
   "homepage": "https://github.com/darekf77/tnp-db#readme",
-  "name": "tnp-db"
+  "name": "tnp-db",
+  "devDependencies": {}
 }
