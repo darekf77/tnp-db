@@ -2,9 +2,6 @@
   "resources": [
     "README.md"
   ],
-  "type": "isomorphic-lib",
-  "version": "v2",
-  "linkedProjects": [],
   "overrided": {
     "tsconfig": {
       "compilerOptions": {
@@ -20,11 +17,14 @@
     "dependencies": {},
     "linkedFolders": []
   },
+  "linkedProjects": [],
   "libReleaseOptions": {
     "nodts": false,
     "obscure": false,
     "ugly": false
   },
+  "type": "isomorphic-lib",
+  "version": "v3",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dist:helpers": "rimraf node_modules/tnp-helpers && cpr `pwd`/../tnp-helpers/dist node_modules/tnp-helpers",
