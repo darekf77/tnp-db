@@ -203,8 +203,8 @@ export class TnpDB {
           Helpers.error(`[config] Core source do not exists: ${source}`, false, true);
         }
         Helpers.info(`link from: ${source} to ${dest}`);
-        Helpers.remove(dest)
-        // Helpers.createSymLink(source, dest,{ continueWhenExistedFolderDoesntExists: true });
+        // Helpers.remove(dest)
+        Helpers.createSymLink(source, dest,{ continueWhenExistedFolderDoesntExists: true });
       }
       await projectToInit.filesStructure.struct();
     }
