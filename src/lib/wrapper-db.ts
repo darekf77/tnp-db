@@ -128,6 +128,7 @@ export class TnpDB {
       recreate: forceRecreate,
       location: this.location,
       recreateScopeFn: async (crud) => {
+        // @ts-ignore
         const previousCommands = await crud.getAll<CommandInstance>(CommandInstance);
         return { previousCommands };
       },
@@ -141,7 +142,7 @@ export class TnpDB {
   //#region api / listen to channel
   listenToChannel(project: Project, channel: Models.realtime.UpdateType,
     callback: () => void | Promise<void>) {
-      // @ts-ignore
+    // @ts-ignore
     DbUpdateProjectEntity.for(project).subscribeRealtimeUpdates({
       callback: (data) => {
         Helpers.log(`ext update. channel: "${channel}" `, data.body.json);
@@ -181,7 +182,7 @@ export class TnpDB {
     `);
     (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
       let corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
-      if(v === 'v3') {
+      if (v === 'v3') {
         corePorjectsTypes = ['isomorphic-lib'];
       }
       const projects = corePorjectsTypes.map(t => Project.by(t, v));
@@ -204,7 +205,7 @@ export class TnpDB {
         }
         Helpers.info(`link from: ${source} to ${dest}`);
         // Helpers.remove(dest)
-        Helpers.createSymLink(source, dest,{ continueWhenExistedFolderDoesntExists: true });
+        Helpers.createSymLink(source, dest, { continueWhenExistedFolderDoesntExists: true });
       }
       await projectToInit.filesStructure.struct();
     }
@@ -366,7 +367,12 @@ export class TnpDB {
       await this.fc.crud.set(cb);
     } else {
       const c = CommandInstance.from(command, location);
-      await this.fc.crud.set(c);
+      if (c.command) {
+        await this.fc.crud.set(c);
+      } else {
+        Helpers.info(`Trying to save command: '${command}'`)
+      }
+
     }
     //#endregion
   }
