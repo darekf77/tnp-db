@@ -30,6 +30,7 @@ export class DomainsController extends BaseController<DbCrud> {
 
 
     (await this.crud.getAll<ProjectInstance>(Project)).forEach((p) => {
+      // @ts-ignore
       const project: Project = p.project;
       if (project && !project.isWorkspaceChildProject && project.env &&
         project.env.config && project.env.config.domain) {

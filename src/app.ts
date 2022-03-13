@@ -2,7 +2,7 @@
 //#region @backend
 import { path, fse, rimraf } from 'tnp-core';
 import { CLASS } from 'typescript-class-helpers';
-import { mocks } from './mocks';
+import { mocks } from './lib/mocks';
 import { Helpers } from 'tnp-helpers';
 
 const dbPath = path.join(process.cwd(), 'tmp-db.json');
@@ -14,7 +14,7 @@ export const config = {
   }
 };
 
-import { TnpDB } from './wrapper-db';
+import { TnpDB } from './lib/wrapper-db';
 
 import { DB } from './index';
 

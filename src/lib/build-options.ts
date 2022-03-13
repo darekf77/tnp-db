@@ -343,6 +343,7 @@ async function getProjectFromArgPath(argPath: string | object, projectCurrent?: 
     project = Project.nearestTo<Project>(argPath as string);
   }
   if (!project) {
+     // @ts-ignore
     const dbProjectsToCheck: Project[] = (await (await TnpDB.Instance()).getProjects()).map(p => p.project);
 
     project = dbProjectsToCheck.find(p => p.genericName === argPath);

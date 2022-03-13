@@ -141,6 +141,7 @@ export class TnpDB {
   //#region api / listen to channel
   listenToChannel(project: Project, channel: Models.realtime.UpdateType,
     callback: () => void | Promise<void>) {
+      // @ts-ignore
     DbUpdateProjectEntity.for(project).subscribeRealtimeUpdates({
       callback: (data) => {
         Helpers.log(`ext update. channel: "${channel}" `, data.body.json);
@@ -179,7 +180,10 @@ export class TnpDB {
 
     `);
     (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
-      const corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
+      let corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
+      if(v === 'v3') {
+        corePorjectsTypes = ['isomorphic-lib'];
+      }
       const projects = corePorjectsTypes.map(t => Project.by(t, v));
       allCoreProject = [
         ...projects,
@@ -219,6 +223,7 @@ export class TnpDB {
   ) {
     //#region @backend
 
+    // @ts-ignore
     await this.projectsCtrl.addIfNotExists(ProjectInstance.from(currentProject));
 
     const killAndRemove = async (existed: BuildInstance) => {
@@ -462,6 +467,7 @@ export class TnpDB {
   public async addProjectIfNotExist(project: Project) {
     //#region @backend
     // Helpers.log('[tnp-db] addProjectIfNotExist ')
+    // @ts-ignore
     await this.projectsCtrl.addIfNotExists(ProjectInstance.from(project));
     //#endregion
   }
