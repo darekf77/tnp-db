@@ -20,6 +20,7 @@ import { FiredevCrud } from 'firedev-crud';
 //#endregion
 import { ProcessBoundAction } from './models';
 import { BuildOptions } from './build-options';
+import { PortsController } from 'firedev-ports';
 import {
   DomainsController,
   BuildsController,
@@ -97,6 +98,14 @@ export class TnpDB {
 
   private get projectsCtrl() {
     return this.fc.getCtrlInstanceBy<ProjectsController>(ProjectsController as any);
+  }
+
+  private get portsCtrl() {
+    return this.fc.getCtrlInstanceBy<PortsController>(PortsController as any);
+  }
+
+  public get portsManaber() {
+    return this.portsCtrl.manager;
   }
 
   //#endregion
