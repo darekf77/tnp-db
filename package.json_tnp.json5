@@ -8,7 +8,7 @@
       },
     },
     ignoreDepsPattern: [],
-    includeAsDev: "*",
+    includeAsDev: [],
     includeOnly: ["firedev-crud-deamon"],
     dependencies: {},
     linkedFolders: [],
