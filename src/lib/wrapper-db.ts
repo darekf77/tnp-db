@@ -191,7 +191,7 @@ export class TnpDB {
     `);
     (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
       let corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
-      if (v === 'v3') {
+      if ( (['v3','v1'] as  ConfigModels.FrameworkVersion[]).includes(v) ) {
         corePorjectsTypes = ['isomorphic-lib'];
       }
       const projects = corePorjectsTypes.map(t => Project.by(t, v));
