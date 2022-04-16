@@ -389,6 +389,7 @@ export class TnpDB {
 
   //#region api / commands / update command build options
   public async updateCommandBuildOptions(location: string, buildOptions: BuildOptions) {
+    return;
     await this.commandsCtrl.updateCommandBuildOptions(location, buildOptions);
   }
   //#endregion
