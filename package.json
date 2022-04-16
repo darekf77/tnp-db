@@ -1,5 +1,5 @@
 {
-  "version": "13.0.21",
+  "version": "13.0.22",
   "dependencies": {
     "firedev-crud-deamon": "~13.0.12"
   },
@@ -125,7 +125,7 @@
     "fbgraph": "1.4.1",
     "file-loader": "1.1.5",
     "firedev": "^13",
-    "firedev-crud": "~13.0.18",
+    "firedev-crud": "~13.0.19",
     "firedev-ports": "~13.0.13",
     "firedev-storage": "~13.0.9",
     "fkill": "6.1.0",
