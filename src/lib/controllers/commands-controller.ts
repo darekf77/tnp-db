@@ -19,6 +19,7 @@ export class CommandsController extends BaseController<DbCrud> {
 
   //#region api / add existed
   async addExisted(scope: { previousCommands?: CommandInstance[] }) {
+    return;
     //#region @backendFunc
     const previousCommands = scope?.previousCommands || [];
     Helpers.log(`[db][reinit] adding existed commands`);
@@ -87,6 +88,7 @@ export class CommandsController extends BaseController<DbCrud> {
 
   //#region api / update command build options
   async updateCommandBuildOptions(location: string, buildOptions: BuildOptions) {
+    return;
     //#region @backend
     Helpers.log('getting last cmd')
     const cmd = await this.lastCommandFrom(location, true);
