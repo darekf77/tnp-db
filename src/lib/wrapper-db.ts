@@ -16,11 +16,13 @@ import {
   FiredevCrudDeamon,
   DbUpdateProjectEntity
 } from 'firedev-crud-deamon';
+import { Morphi as Firedev } from 'morphi';
 import { FiredevCrud } from 'firedev-crud';
 //#endregion
 import { ProcessBoundAction } from './models';
 import { BuildOptions } from './build-options';
 import { PortsController } from 'firedev-ports';
+import { debounceTime, exhaustMap, tap } from 'rxjs';
 import {
   DomainsController,
   BuildsController,
@@ -152,22 +154,27 @@ export class TnpDB {
   listenToChannel(project: Project, channel: Models.realtime.UpdateType,
     callback: () => void | Promise<void>) {
     // @ts-ignore
-    DbUpdateProjectEntity.for(project).subscribeRealtimeUpdates({
-      callback: (data) => {
-        Helpers.log(`ext update. channel: "${channel}" `, data.body.json);
+    const entity = DbUpdateProjectEntity.for(project);
+    Firedev.Realtime.Browser.listenChangesEntityObj(entity, {
+      property: channel
+    }).pipe(
+      debounceTime(1000),
+      tap(() => {
+        Helpers.log(`ext update. channel: "${channel}" `);
         if (_.isFunction(callback)) {
           Helpers.runSyncOrAsync(callback);
         } else {
           Helpers.log('Callback triggered but not funciton');
         }
-      },
-      property: channel
-    });
+      })
+    ).subscribe()
+
   }
   //#endregion
 
   //#region api / trigger change for projects
   async triggerChangeForProject(project: Project, channel: Models.realtime.UpdateType) {
+
     if (this.fc instanceof FiredevCrudDeamon) {
       return await (this.fc as FiredevCrudDeamon).worker
         .triggerChangeOfProject(project.location, channel).received as any; // TODO QUICK_FIX
@@ -191,7 +198,7 @@ export class TnpDB {
     `);
     (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
       let corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
-      if ( (['v3','v1'] as  ConfigModels.FrameworkVersion[]).includes(v) ) {
+      if ((['v3', 'v1'] as ConfigModels.FrameworkVersion[]).includes(v)) {
         corePorjectsTypes = ['isomorphic-lib'];
       }
       const projects = corePorjectsTypes.map(t => Project.by(t, v));
