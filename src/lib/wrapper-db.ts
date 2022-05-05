@@ -153,6 +153,12 @@ export class TnpDB {
   //#region api / listen to channel
   listenToChannel(project: Project, channel: Models.realtime.UpdateType,
     callback: () => void | Promise<void>) {
+    //#region @backend
+    if (process.platform === 'win32') { // TODO QUICK_FIX
+      return;
+    }
+    //#endregion
+
     // @ts-ignore
     const entity = DbUpdateProjectEntity.for(project);
     Firedev.Realtime.Browser.listenChangesEntityObj(entity, {
@@ -174,7 +180,11 @@ export class TnpDB {
 
   //#region api / trigger change for projects
   async triggerChangeForProject(project: Project, channel: Models.realtime.UpdateType) {
-
+    //#region @backend
+    if (process.platform === 'win32') { // TODO QUICK_FIX
+      return;
+    }
+    //#endregion
     if (this.fc instanceof FiredevCrudDeamon) {
       return await (this.fc as FiredevCrudDeamon).worker
         .triggerChangeOfProject(project.location, channel).received as any; // TODO QUICK_FIX
