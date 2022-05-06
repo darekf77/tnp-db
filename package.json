@@ -225,7 +225,7 @@
     "tnp-cli": "~13.0.17",
     "tnp-config": "~13.0.20",
     "tnp-core": "~13.0.42",
-    "tnp-db": "~13.0.26",
+    "tnp-db": "~13.0.27",
     "tnp-helpers": "~13.0.27",
     "tnp-models": "~13.0.18",
     "tnp-ui": "~13.0.18",
@@ -244,5 +244,5 @@
     "watch": "1.0.2",
     "zone.js": "~0.11.4"
   },
-  "lastBuildTagHash": "76584be34009b4df3cf564d16f97027883e3a023"
+  "lastBuildTagHash": "7617cf39bce098fa5aa012a9f5621fee22939ec7"
 }
