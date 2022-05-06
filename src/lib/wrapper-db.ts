@@ -161,10 +161,13 @@ export class TnpDB {
 
     // @ts-ignore
     const entity = DbUpdateProjectEntity.for(project);
-    Firedev.Realtime.Browser.listenChangesEntityObj(entity, {
+    // @ts-ignore
+    Firedev.Realtime.Browser.listenChangesEntityObj(entity, { // @ts-ignore
       property: channel
     }).pipe(
+      // @ts-ignore
       debounceTime(1000),
+      // @ts-ignore
       tap(() => {
         Helpers.log(`ext update. channel: "${channel}" `);
         if (_.isFunction(callback)) {
@@ -173,6 +176,7 @@ export class TnpDB {
           Helpers.log('Callback triggered but not funciton');
         }
       })
+      // @ts-ignore
     ).subscribe()
 
   }
@@ -333,6 +337,7 @@ export class TnpDB {
 
   //#region api / processes / get processes
   public async getProceses(): Promise<ProcessInstance[]> {
+    // @ts-ignore
     return await this.fc.crud.getAll(ProcessInstance);
   }
   //#endregion
@@ -357,6 +362,7 @@ export class TnpDB {
   //#region api / commands / run command
   public async runCommand(cmd: CommandInstance) {
     //#region @backendFunc
+    // @ts-ignore
     await this.commandsCtrl.runCommand(cmd);
     //#endregion
   }
@@ -365,6 +371,7 @@ export class TnpDB {
   //#region api / commands / get commands
   public async getCommands(): Promise<CommandInstance[]> {
     //#region @backendFunc
+    // @ts-ignore
     return await this.fc.crud.getAll(CommandInstance);
     //#endregion
   }
@@ -373,6 +380,7 @@ export class TnpDB {
   //#region api / commands / last command from
   public async lastCommandFrom(location: string, buildCommand = false) {
     //#region @backendFunc
+    // @ts-ignore
     return await this.commandsCtrl.lastCommandFrom(location, buildCommand);
     //#endregion
 
@@ -392,10 +400,12 @@ export class TnpDB {
     const cb = CommandInstance.from(command, location);
     if (_.isString(cb.command) && cb.command.trim().startsWith(`${config.frameworkName} b`)) {
       cb.isBuildCommand = true;
+      // @ts-ignore
       await this.fc.crud.set(cb);
     } else {
       const c = CommandInstance.from(command, location);
       if (c.command) {
+        // @ts-ignore
         await this.fc.crud.set(c);
       } else {
         Helpers.info(`Trying to save command: '${command}'`)
@@ -450,19 +460,23 @@ export class TnpDB {
 
   //#region api / builds / dist build founded for
   public async distBuildFoundedFor(project: Project) {
+    // @ts-ignore
     return await this.buildsCtrl.distBuildFoundedFor(project);
   }
   //#endregion
 
   //#region api / builds / app build founded for
   public async appBuildFoundedFor(project: Project) {
+    // @ts-ignore
     return await this.buildsCtrl.appBuildFoundedFor(project);
   }
   //#endregion
 
   //#region api / builds / get builds
   public async getBuilds(): Promise<BuildInstance[]> {
+    // @ts-ignore
     await this.buildsCtrl.update();
+    // @ts-ignore
     return await this.fc.crud.getAll(BuildInstance) as any;
   }
   //#endregion
@@ -476,6 +490,7 @@ export class TnpDB {
     if (existed) {
       await existed.updateCmdFrom(buildOptions);
       // console.log(existed);
+      // @ts-ignore
       await this.fc.crud.set(existed as any);
       // process.exit(0)
     }
@@ -490,8 +505,10 @@ export class TnpDB {
   //#region api / projects / get projects
   public async getProjects(): Promise<ProjectInstance[]> {
     //#region @backendFunc
+    // @ts-ignore
     let projects = await this.fc.crud.getAll<ProjectInstance>(ProjectInstance);
     projects = projects.filter(p => !!p.project);
+    // @ts-ignore
     await this.fc.crud.setBulk(projects, ProjectInstance);
     return projects;
     //#endregion

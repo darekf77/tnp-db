@@ -6,7 +6,7 @@ import { CLASS } from 'typescript-class-helpers';
 
 export type IProcessInstanceInfo = Pick<ProcessInstance, 'className' | 'entityId' | 'entityProperty'>;
 
-@CLASS.NAME('ProcessInstance')
+@CLASS.NAME('ProcessInstance') // @ts-ignore
 export class ProcessInstance extends DBBaseEntity<ProcessInstance> {
   //#region static methods
 

@@ -17,7 +17,7 @@ export class IDomainInstance {
   //#endregion
 }
 
-@CLASS.NAME('DomainInstance')
+@CLASS.NAME('DomainInstance') // @ts-ignore
 export class DomainInstance extends DBBaseEntity<DomainInstance>
   implements IDomainInstance {
 

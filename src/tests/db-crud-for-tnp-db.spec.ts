@@ -25,6 +25,7 @@ function db() {
   return res;
 }
 
+// @ts-ignore
 
 class TestInstance extends DBBaseEntity {
   getRawData(): Promise<object> {

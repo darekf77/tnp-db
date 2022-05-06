@@ -20,7 +20,7 @@ export interface IBuildInstance {
   //#endregion
 }
 
-@CLASS.NAME('BuildInstance')
+@CLASS.NAME('BuildInstance') // @ts-ignore
 export class BuildInstance extends DBBaseEntity<BuildInstance> implements IBuildInstance {
 
   //#region static methods / from

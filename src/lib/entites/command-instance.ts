@@ -7,7 +7,7 @@ import { Models, DBBaseEntity } from 'tnp-models';
 //#endregion
 //#endregion
 
-@CLASS.NAME('CommandInstance')
+@CLASS.NAME('CommandInstance') // @ts-ignore
 export class CommandInstance extends DBBaseEntity<CommandInstance>{
 
   //#region static methods
