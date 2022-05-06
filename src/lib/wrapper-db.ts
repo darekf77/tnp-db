@@ -206,6 +206,8 @@ export class TnpDB {
       Project.projects.length ${Project.projects.length}
 
     `);
+    Helpers.run(`${config.frameworkName} link:core`).sync();
+    Helpers.run(`${config.frameworkName} env:install`).sync();
     (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
       let corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
       if ((['v3', 'v1'] as ConfigModels.FrameworkVersion[]).includes(v)) {
