@@ -59,11 +59,6 @@ export class TnpDB {
     if (!TnpDB._instance) {
 
       TnpDB._instance = new TnpDB(location);
-      //#region @backend
-      if (!fse.existsSync(location)) {
-        CLI.installEnvironment();
-      }
-      //#endregion
       await TnpDB._instance.init(
         //#region @backend
         !fse.existsSync(location)
