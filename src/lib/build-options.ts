@@ -52,6 +52,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       watch = false,
       uglify = false,
       obscure = false,
+      websql = false,
       nodts = false,
       outDir = 'dist',
       appBuild = false,
@@ -88,11 +89,14 @@ export class BuildOptions implements Models.dev.StartForOptions {
         if (cmdPart === 'obscure') {
           obscure = true;
         }
+        if (cmdPart === 'websql') {
+          websql = true;
+        }
         if (cmdPart === 'nodts') {
           nodts = true;
         }
       }
-      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts, ngbuildonly };
+      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, websql, nodts, ngbuildonly };
     }
     //#endregion
   }
@@ -127,6 +131,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     argsObj.prod = optionsToMerge.prod;
     argsObj.uglify = optionsToMerge.uglify;
     argsObj.obscure = optionsToMerge.obscure;
+    argsObj.websql = optionsToMerge.websql;
     argsObj.nodts = optionsToMerge.nodts;
     argsObj.outDir = optionsToMerge.outDir as any;
     argsObj.appBuild = optionsToMerge.appBuild;
@@ -219,6 +224,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       prod = false,
       uglify = false,
       obscure = false,
+      websql = false,
       nodts = false,
       staticBuild = false,
       skipCopyToSelection = false,
@@ -276,6 +282,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       `${watch ? ':watch' : ''}` +
       `${uglify ? ':uglify' : ''}` +
       `${obscure ? ':obscure' : ''}` +
+      `${websql ? ':websql' : ''}` +
       `${nodts ? ':nodts' : ''}` +
       ` ${args.join(' ')}`;
     //#endregion
@@ -290,6 +297,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
   watch?: boolean;
   uglify?: boolean;
   obscure?: boolean;
+  websql?: boolean;
   nodts?: boolean;
   ngbuildonly?: boolean;
   staticBuild?: boolean;
@@ -343,7 +351,7 @@ async function getProjectFromArgPath(argPath: string | object, projectCurrent?: 
     project = Project.nearestTo<Project>(argPath as string);
   }
   if (!project) {
-     // @ts-ignore
+    // @ts-ignore
     const dbProjectsToCheck: Project[] = (await (await TnpDB.Instance()).getProjects()).map(p => p.project);
 
     project = dbProjectsToCheck.find(p => p.genericName === argPath);
