@@ -1,5 +1,6 @@
 {
   resources: ["README.md"],
+
   overrided: {
     tsconfig: {
       compilerOptions: {
@@ -13,20 +14,26 @@
     dependencies: {},
     linkedFolders: [],
   },
+
   linkedProjects: [],
+  linkedRepos: [],
+
   libReleaseOptions: {
     nodts: false,
     obscure: false,
     ugly: false,
   },
+
   type: "isomorphic-lib",
   version: "v3",
   additionalNpmNames: ["firedev-db"],
+
   scripts: {
     test: 'echo "Error: no test specified" && exit 1',
     "dist:helpers": "rimraf node_modules/tnp-helpers && cpr `pwd`/../tnp-helpers/dist node_modules/tnp-helpers",
     "dist:models": "rimraf node_modules/tnp-models && cpr `pwd`/../tnp-models/dist node_modules/tnp-models",
   },
+
   description: "",
   license: "MIT",
   private: false,
