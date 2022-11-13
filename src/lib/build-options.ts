@@ -1,3 +1,4 @@
+//#region imports
 //#region @backend
 import { CLI } from 'tnp-cli';
 import { path } from 'tnp-core';
@@ -8,9 +9,12 @@ import { _ } from 'tnp-core';
 import { Helpers, Project } from 'tnp-helpers';
 import { Models } from 'tnp-models';
 import { CLASS } from 'typescript-class-helpers';
+//#endregion
 
 @CLASS.NAME('BuildOptions')
 export class BuildOptions implements Models.dev.StartForOptions {
+
+  //#region static
 
   //#region static field & getters
   public static PropsToOmmitWhenStringify = ['copyto', 'forClient'];
@@ -36,6 +40,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
         args[i + 1] = ars[args[i + 1]];
       }
       if (nextArgExisted && toCheckArgsSimplfied.includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))) {
+        // @ts-ignore
         args[i + 1] = toCheckArgs.find(c => {
           return Helpers.cliTool.simplifiedCmd(c) === Helpers.cliTool.simplifiedCmd(args[i + 1]);
         });
@@ -48,16 +53,17 @@ export class BuildOptions implements Models.dev.StartForOptions {
           .includes(Helpers.cliTool.simplifiedCmd(args[i + 1]))
         );
     });
+
     let prod = false,
       watch = false,
       uglify = false,
       obscure = false,
-      websql = false,
       nodts = false,
       outDir = 'dist',
       appBuild = false,
       staticBuild = false,
       ngbuildonly = false;
+
     if (ind >= 0) {
       const cmd = _.kebabCase(args[ind + 1]).split('-').slice(1);
       for (let index = 0; index < cmd.length; index++) {
@@ -89,14 +95,11 @@ export class BuildOptions implements Models.dev.StartForOptions {
         if (cmdPart === 'obscure') {
           obscure = true;
         }
-        if (cmdPart === 'websql') {
-          websql = true;
-        }
         if (cmdPart === 'nodts') {
           nodts = true;
         }
       }
-      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, websql, nodts, ngbuildonly };
+      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts, ngbuildonly };
     }
     //#endregion
   }
@@ -114,24 +117,27 @@ export class BuildOptions implements Models.dev.StartForOptions {
     const split = argsString.split(' ');
     // console.log('split', split)
     const optionsToMerge = (!!mainOptions ? mainOptions : this.getMainOptions(split)) as Partial<BuildOptions>;
-    // console.log('optionsToMerge', optionsToMerge)
+    // console.log({ optionsToMerge })
     if (!optionsToMerge) {
       Helpers.log(`[build-options] NO options to merge`);
-      return;
+      return (void 0) as any;
     }
     const argsObj: Partial<BuildOptions> = require('minimist')(split);
+    // console.log({
+    //   argsObj
+    // })
     Object.keys(argsObj).forEach(key => {
       if (_.isString(key) && (key.length === 1) && _.isBoolean(argsObj[key])) {
         Helpers.log(`[build-options] Removing argument: "${key}=${argsObj[key]}`);
         delete argsObj[key];
       }
     });
-    // console.log('argsObj', argsObj)
+
     argsObj.watch = optionsToMerge.watch;
     argsObj.prod = optionsToMerge.prod;
     argsObj.uglify = optionsToMerge.uglify;
     argsObj.obscure = optionsToMerge.obscure;
-    argsObj.websql = optionsToMerge.websql;
+    // argsObj.websql = optionsToMerge.websql;
     argsObj.nodts = optionsToMerge.nodts;
     argsObj.outDir = optionsToMerge.outDir as any;
     argsObj.appBuild = optionsToMerge.appBuild;
@@ -140,7 +146,10 @@ export class BuildOptions implements Models.dev.StartForOptions {
       optionsToMerge.copyto : argsObj.copyto;
     argsObj.args = argsString;
 
-
+    // console.log({
+    //   argsString,
+    //   argsObj
+    // })
     if (!_.isNil(argsObj.forClient)) {
       if (_.isString(argsObj.forClient)) {
         argsObj.forClient = [argsObj.forClient];
@@ -230,10 +239,10 @@ export class BuildOptions implements Models.dev.StartForOptions {
       skipCopyToSelection = false,
       genOnlyClientCode, onlyBackend, onlyWatchNoBuild
     } = buildOptions;
-    let args = [];
+    let args: string[] = [];
 
     if (_.isArray(copyto)) {
-      const argsFromCopyto = [];
+      const argsFromCopyto: string[] = [];
       for (let index = 0; index < copyto.length; index++) {
         const argPath = copyto[index] as any;
         const project = (_.isString(argPath && argPath.location) ? argPath
@@ -249,6 +258,8 @@ export class BuildOptions implements Models.dev.StartForOptions {
         const argPath = forClient[index] as any;
         const project = (_.isString(argPath && argPath.location) ? argPath
           : await getProjectFromArgPath(argPath));
+
+        // @ts-ignore
         argsFromForClient.push(`--forClient ${project.location}`);
       }
       args = args.concat(argsFromForClient);
@@ -292,6 +303,8 @@ export class BuildOptions implements Models.dev.StartForOptions {
   //#endregion
 
   //#endregion
+
+  //#region fields
   prod?: boolean;
   outDir?: Models.dev.BuildDir;
   watch?: boolean;
@@ -328,14 +341,28 @@ export class BuildOptions implements Models.dev.StartForOptions {
    * Specyify build targets as workspace childs projects names
    */
   forClient?: Project[] | string[];
+  //#endregion
 
+  //#region api
   public toString = () => {
     return JSON.stringify(_.mergeWith({}, _.omit(this, BuildOptions.PropsToOmmitWhenStringify)), null, 4);
   }
 
+  public clone(override?: Partial<BuildOptions>) {
+    const copy = new BuildOptions();
+    Object.keys(this).forEach(key => {
+      const org = this[key];
+      copy[key] = org;
+    });
+    Object.assign(copy, override);
+    return copy as BuildOptions;
+  }
+
+  //#endregion
 
 }
 
+//#region helpers
 //#region @backend
 async function getProjectFromArgPath(argPath: string | object, projectCurrent?: Project) {
   if (_.isObject(argPath)) {
@@ -347,18 +374,22 @@ async function getProjectFromArgPath(argPath: string | object, projectCurrent?: 
   if (_.isString(argPath) && !path.isAbsolute(argPath) && projectCurrent) {
     project = Project.From(path.join(projectCurrent.location, argPath));
   }
+
+  // @ts-ignore
   if (!project) {
     project = Project.nearestTo<Project>(argPath as string);
   }
   if (!project) {
     // @ts-ignore
     const dbProjectsToCheck: Project[] = (await (await TnpDB.Instance()).getProjects()).map(p => p.project);
-
+    // @ts-ignore
     project = dbProjectsToCheck.find(p => p.genericName === argPath);
     if (!project) {
+      // @ts-ignore
       project = dbProjectsToCheck.find(p => p.name === argPath);
     }
   }
   return project;
 }
+//#endregion
 //#endregion
