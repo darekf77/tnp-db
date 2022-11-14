@@ -48,6 +48,7 @@ export class TnpDB {
   private static _instance: TnpDB;
   public static get InstanceSync() {
     if (!TnpDB._instance) {
+      // @ts-ignore
       Helpers.error(`Please use (await TnpDB.Instance) here`);
     }
     return TnpDB._instance;
@@ -164,10 +165,13 @@ export class TnpDB {
       debounceTime(1000),
       // @ts-ignore
       tap(() => {
+        // @ts-ignore
         Helpers.log(`ext update. channel: "${channel}" `);
         if (_.isFunction(callback)) {
+          // @ts-ignore
           Helpers.runSyncOrAsync(callback);
         } else {
+          // @ts-ignore
           Helpers.log('Callback triggered but not funciton');
         }
       })
@@ -189,6 +193,7 @@ export class TnpDB {
         .triggerChangeOfProject(project.location, channel).received as any; // TODO QUICK_FIX
 
     } else {
+      // @ts-ignore
       Helpers.log(`[tnp-db][triggerChangeForProject] Nothing to trigger...(worker is off)`);
     }
   }
@@ -345,6 +350,7 @@ export class TnpDB {
 
   //#region api / processes / update processes
   public async updateProcesses() {
+    // @ts-ignore
     Helpers.log(`[db] Updating buillds...`);
     await this.buildsCtrl.update();
   }
@@ -537,6 +543,7 @@ export class TnpDB {
     if (this.fc instanceof FiredevCrudDeamon) {
       await this.fc.killWorker();
     } else {
+      // @ts-ignore
       Helpers.warn(`[tnp-db][kill owker] nothing to kill in workerless mode`);
     }
   }
@@ -547,6 +554,7 @@ export class TnpDB {
     if (this.fc instanceof FiredevCrudDeamon) {
       return await this.fc.getWokerPort();
     } else {
+      // @ts-ignore
       Helpers.warn(`[tnp-db][kill owker] can't get port in workerless mode`);
     }
   }

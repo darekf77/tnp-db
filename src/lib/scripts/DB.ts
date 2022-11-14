@@ -100,6 +100,7 @@ const $DB_REINIT = () => {
 
 
 export default {
+  //#region @backend
   $PROC_MONITOR: Helpers.CLIWRAP($PROC_MONITOR, '$PROC_MONITOR'),
   $MONIT_TOP: Helpers.CLIWRAP($MONIT_TOP, '$MONIT_TOP'),
   $MONIT_COMMANDS: Helpers.CLIWRAP($MONIT_COMMANDS, '$MONIT_COMMANDS'),
@@ -109,6 +110,7 @@ export default {
   $LAST_BUILD: Helpers.CLIWRAP($LAST_BUILD, '$LAST_BUILD'),
   $SHOW_LAST: Helpers.CLIWRAP($SHOW_LAST, '$SHOW_LAST'),
   $EXISTS: Helpers.CLIWRAP($EXISTS, '$EXISTS'),
+  //#endregion
 };
 
 

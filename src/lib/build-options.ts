@@ -105,6 +105,12 @@ export class BuildOptions implements Models.dev.StartForOptions {
   }
   //#endregion
 
+  public static fromJson(json: any) {
+    const buildOpt = new BuildOptions();
+
+    return _.merge(buildOpt, json) as BuildOptions; // TODO
+  }
+
   //#region static fields / from
   public static async from(
     argsString: string,

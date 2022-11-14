@@ -8,11 +8,13 @@ export const DB = _DB.default;
 
 
 export const CLI_FUNCTIONS = [
+  //#region @backend
   _DB.$LAST,
   _DB.$LAST_BUILD,
   _DB.$SHOW_LAST,
   DB.$DB,
   DB.$DB_REINIT,
+  //#endregion
 ];
 
 export function asdas() {
