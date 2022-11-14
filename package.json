@@ -1,5 +1,5 @@
 {
-  "version": "13.0.31",
+  "version": "13.0.32",
   "dependencies": {
     "firedev-crud-deamon": "~13.0.21"
   },
