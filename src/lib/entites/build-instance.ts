@@ -138,6 +138,7 @@ export class BuildInstance extends DBBaseEntity<BuildInstance> implements IBuild
 
   //#region api / is equal
   isEqual(anotherInstace: BuildInstance) {
+    return false; // TODO DELETE @LAST
     if (!anotherInstace) {
       return false;
     }
