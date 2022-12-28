@@ -105,10 +105,31 @@ export class BuildOptions implements Models.dev.StartForOptions {
   }
   //#endregion
 
-  public static fromJson(json: any) {
-    const buildOpt = new BuildOptions();
+  public static fromJson(json: Pick<BuildOptions, 'outDir' | 'websql' | 'appBuild' | 'watch' | 'prod' | 'args'>) {
+    const options = json as BuildOptions;
+    if (_.isUndefined(options.outDir)) {
+      options.outDir = 'dist';
+    }
+    if (_.isUndefined(options.prod)) {
+      options.prod = false;
+    }
+    if (_.isUndefined(options.websql)) {
+      options.websql = false;
+    }
+    if (_.isUndefined(options.watch)) {
+      options.watch = false;
+    }
+    if (_.isUndefined(options.appBuild)) {
+      options.appBuild = false;
+    }
+    if (_.isUndefined(options.args)) {
+      options.args = '';
+    }
 
-    return _.merge(buildOpt, json) as BuildOptions; // TODO
+    delete options.copyto;
+    delete options.forClient;
+    const buildOpt = new BuildOptions();
+    return _.merge(buildOpt, options) as BuildOptions; // TODO
   }
 
   //#region static fields / from
