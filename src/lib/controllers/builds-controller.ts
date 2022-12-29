@@ -28,6 +28,7 @@ export class BuildsController extends BaseController<DbCrud> {
     //#region @backend
     const ps: Models.system.PsListInfo[] = await psList();
     const filteredBuilds = await this.getExisted(ps);
+    // @ts-ignore
     await this.crud.setBulk(filteredBuilds, BuildInstance);
     //#endregion
   }
@@ -116,6 +117,7 @@ export class BuildsController extends BaseController<DbCrud> {
   async killInstancesFrom(projects: Project[]) {
     //#region @backend
     const projectsLocations = projects.map(p => p.location);
+    // @ts-ignore
     (await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[])
       .filter(b => projectsLocations.includes(b.project.location))
       .forEach(b => {
@@ -137,7 +139,7 @@ export class BuildsController extends BaseController<DbCrud> {
       pid,
       location: project.location,
       ppid
-    })).prepareInstance('db add');
+    })).prepareInstance('db add'); // @ts-ignore
     await this.crud.addIfNotExist(currentB);
     //#endregion
   }
@@ -146,7 +148,7 @@ export class BuildsController extends BaseController<DbCrud> {
   //#region api / dist build founded for
   async distBuildFoundedFor(project: Project) {
     //#region @backend
-    await this.update();
+    await this.update(); // @ts-ignore
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const result = all.find(b => {
       // if(b.location === '/Users/darek/projects/npm/firedev-projects/container-v2/workspace-v2/angular-lib-v2') {
@@ -176,7 +178,7 @@ export class BuildsController extends BaseController<DbCrud> {
   //#region api / app build founded for
   async appBuildFoundedFor(project: Project) {
     //#region @backendFunc
-    await this.update();
+    await this.update(); // @ts-ignore
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const possibleLocation = [];
     if (project.isStandaloneProject) {
@@ -215,7 +217,7 @@ export class BuildsController extends BaseController<DbCrud> {
   //#region api / get existed pid
   async getExistedByPid(pid: number) {
     //#region @backend
-    await this.update();
+    await this.update(); // @ts-ignore
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     return all.find(a => a.pid === pid);
     //#endregion
@@ -233,7 +235,7 @@ export class BuildsController extends BaseController<DbCrud> {
     await this.update();
     const currentB = await (BuildInstance.from({ buildOptions, pid, location: project.location, ppid }))
       .prepareInstance('getExistedForOptions');
-
+    // @ts-ignore
     const all = await this.crud.getAll<BuildInstance>(BuildInstance) as BuildInstance[];
     const existed = all.find(b => {
       return b.isEqual(currentB);

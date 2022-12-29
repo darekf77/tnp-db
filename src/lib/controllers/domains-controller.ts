@@ -47,7 +47,7 @@ export class DomainsController extends BaseController<DbCrud> {
         });
       }
     });
-
+    // @ts-ignore
     await this.crud.setBulk(domains, DomainInstance);
     //#endregion
   }

@@ -60,7 +60,7 @@ export class ProcessController extends BaseController<DbCrud> {
   //#region find process by info
   async findProcessByInfo(metaInfo: IProcessInstanceInfo) {
     //#region @backendFunc
-    const { className, entityId, entityProperty } = metaInfo;
+    const { className, entityId, entityProperty } = metaInfo; // @ts-ignore
     const proceses = await this.crud.getAll<ProcessInstance>(ProcessInstance);
     let existed: ProcessInstance;
     existed = proceses.find((p) => {
@@ -108,7 +108,7 @@ export class ProcessController extends BaseController<DbCrud> {
     // existed.cmd = metaInfo.cmd;
     // existed.pid = metaInfo.pid;
 
-    if (saveToDB) {
+    if (saveToDB) { // @ts-ignore
       await this.crud.set(existed);
     }
     return existed;

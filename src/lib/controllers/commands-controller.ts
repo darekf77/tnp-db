@@ -38,6 +38,7 @@ export class CommandsController extends BaseController<DbCrud> {
   //#region api / last command from
   async lastCommandFrom(location: string, buildCommand = false): Promise<CommandInstance> {
     //#region @backendFunc
+    // @ts-ignore
     const commands = await this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
     let cmd;
     if (buildCommand) {
@@ -75,6 +76,7 @@ export class CommandsController extends BaseController<DbCrud> {
   //#region api / run last command
   async runLastCommandIn(location: string) {
     //#region @backend
+    // @ts-ignore
     const commands = await this.crud.getAll<CommandInstance>(CommandInstance) as CommandInstance[];
     const cmd = commands.find(c => c.location === location)
     if (cmd && _.isString(cmd.command) && cmd.command.trim() !== '') {
@@ -108,6 +110,7 @@ export class CommandsController extends BaseController<DbCrud> {
           }).join(' ') : '';
 
       cmd.command = cmd.shortCommandForLastCommand + ' ' + clients + ' ' + copyto;
+      // @ts-ignore
       await this.crud.set(cmd)
     }
     // else {

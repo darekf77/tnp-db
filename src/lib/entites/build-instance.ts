@@ -66,7 +66,6 @@ export class BuildInstance extends DBBaseEntity<BuildInstance> implements IBuild
     //#region @backendFunc
     const brief = this.buildOptions ? (
       '(' +
-      (this.buildOptions.staticBuild ? 'static' : '') + ',' +
       (this.buildOptions.prod ? 'prod' : '') + ',' +
       (this.buildOptions.watch ? 'watch' : 'normal') + ',' +
       (this.buildOptions.appBuild ? 'app' : 'lib') + ',' +
