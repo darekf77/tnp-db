@@ -58,6 +58,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       watch = false,
       uglify = false,
       obscure = false,
+      includeNodeModules = false,
       nodts = false,
       outDir = 'dist',
       appBuild = false,
@@ -95,11 +96,14 @@ export class BuildOptions implements Models.dev.StartForOptions {
         if (cmdPart === 'obscure') {
           obscure = true;
         }
+        if (cmdPart === 'includeNodeModules') {
+          includeNodeModules = true;
+        }
         if (cmdPart === 'nodts') {
           nodts = true;
         }
       }
-      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, nodts, ngbuildonly };
+      return { prod, watch, outDir, appBuild, staticBuild, uglify, obscure, includeNodeModules, nodts, ngbuildonly };
     }
     //#endregion
   }
@@ -164,6 +168,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     argsObj.prod = optionsToMerge.prod;
     argsObj.uglify = optionsToMerge.uglify;
     argsObj.obscure = optionsToMerge.obscure;
+    argsObj.includeNodeModules = optionsToMerge.includeNodeModules;
     // argsObj.websql = optionsToMerge.websql;
     argsObj.nodts = optionsToMerge.nodts;
     argsObj.outDir = optionsToMerge.outDir as any;
@@ -260,6 +265,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       prod = false,
       uglify = false,
       obscure = false,
+      includeNodeModules = false,
       websql = false,
       nodts = false,
       staticBuild = false,
@@ -320,6 +326,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       `${watch ? ':watch' : ''}` +
       `${uglify ? ':uglify' : ''}` +
       `${obscure ? ':obscure' : ''}` +
+      `${includeNodeModules ? ':includeNodeModules' : ''}` +
       `${websql ? ':websql' : ''}` +
       `${nodts ? ':nodts' : ''}` +
       ` ${args.join(' ')}`;
@@ -337,6 +344,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
   watch?: boolean;
   uglify?: boolean;
   obscure?: boolean;
+  includeNodeModules?: boolean;
   websql?: boolean;
   nodts?: boolean;
   ngbuildonly?: boolean;
