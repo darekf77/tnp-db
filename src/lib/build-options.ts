@@ -109,7 +109,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
   }
   //#endregion
 
-  public static fromJson(json: Pick<BuildOptions, 'outDir' | 'websql' | 'appBuild' | 'watch' | 'prod' | 'args'>) {
+  public static fromJson(json: Pick<BuildOptions, 'outDir' | 'websql' | 'serveApp' | 'appBuild' | 'watch' | 'prod' | 'args'>) {
     const options = json as BuildOptions;
     if (_.isUndefined(options.outDir)) {
       options.outDir = 'dist';
@@ -119,6 +119,9 @@ export class BuildOptions implements Models.dev.StartForOptions {
     }
     if (_.isUndefined(options.websql)) {
       options.websql = false;
+    }
+    if (_.isUndefined(options.serveApp)) {
+      options.serveApp = false;
     }
     if (_.isUndefined(options.watch)) {
       options.watch = false;
@@ -170,6 +173,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
     argsObj.obscure = optionsToMerge.obscure;
     argsObj.includeNodeModules = optionsToMerge.includeNodeModules;
     // argsObj.websql = optionsToMerge.websql;
+    // argsObj.serveApp = optionsToMerge.serveApp;
     argsObj.nodts = optionsToMerge.nodts;
     argsObj.outDir = optionsToMerge.outDir as any;
     argsObj.appBuild = optionsToMerge.appBuild;
@@ -267,6 +271,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       obscure = false,
       includeNodeModules = false,
       websql = false,
+      serveApp = false,
       nodts = false,
       staticBuild = false,
       skipCopyToSelection = false,
@@ -328,6 +333,7 @@ export class BuildOptions implements Models.dev.StartForOptions {
       `${obscure ? ':obscure' : ''}` +
       `${includeNodeModules ? ':includeNodeModules' : ''}` +
       `${websql ? ':websql' : ''}` +
+      `${serveApp ? ':serveApp' : ''}` +
       `${nodts ? ':nodts' : ''}` +
       ` ${args.join(' ')}`;
     //#endregion
@@ -346,6 +352,8 @@ export class BuildOptions implements Models.dev.StartForOptions {
   obscure?: boolean;
   includeNodeModules?: boolean;
   websql?: boolean;
+  /**i n lib build serve app when possible */
+  serveApp?: boolean;
   nodts?: boolean;
   ngbuildonly?: boolean;
   staticBuild?: boolean;
