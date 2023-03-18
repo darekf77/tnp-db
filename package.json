@@ -1,5 +1,5 @@
 {
-  "version": "13.1.10",
+  "version": "13.1.11",
   "dependencies": {
     "firedev-crud-deamon": "~13.1.28"
   },
@@ -111,6 +111,7 @@
     "dateformat": "3.0.3",
     "detect-mocha": "0.1.0",
     "diff": "3.2.0",
+    "edit-table": "13.1.0",
     "element-resize-detector": "1.1.15",
     "enquirer": "2.3.0",
     "enum-values": "1.2.1",
@@ -225,11 +226,11 @@
     "systeminformation": "3.45.7",
     "task.js": "0.1.5",
     "tnp-cli": "~13.1.45",
-    "tnp-config": "~13.1.56",
-    "tnp-core": "~13.1.64",
+    "tnp-config": "~13.1.57",
+    "tnp-core": "~13.2.1",
     "tnp-db": "~13.1.9",
-    "tnp-helpers": "~13.1.18",
-    "tnp-models": "~13.1.10",
+    "tnp-helpers": "~13.1.19",
+    "tnp-models": "~13.1.11",
     "tnp-ui": "~13.1.27",
     "ts-debug": "1.3.0",
     "ts-loader": "2.3.1",
