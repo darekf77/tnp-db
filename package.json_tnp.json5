@@ -8,11 +8,13 @@
         noEmit: true,
       },
     },
+
     ignoreDepsPattern: [],
     includeAsDev: [],
     includeOnly: ["firedev-crud-deamon"],
     dependencies: {},
     linkedFolders: [],
+    npmFixes: [],
   },
 
   linkedProjects: [],
