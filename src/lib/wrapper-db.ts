@@ -140,7 +140,7 @@ export class TnpDB {
         return { previousCommands };
       },
       callbackCreation: async () => {
-        await this.initCoreProjects();
+        // await this.initCoreProjects();
       }
     });
   }
@@ -200,51 +200,51 @@ export class TnpDB {
   //#endregion
 
   //#region api / init core projects
-  async initCoreProjects() {
-    //#region @backend
-    let allCoreProject: (Project & {
-      projectLinkedFiles: any; // TODO QUICKFIX,
-      filesStructure: any;
-    })[] = [];
-    Helpers.log(`INITING CORE PROJECTS START
-      Project.projects.length ${Project.projects.length}
+  // async initCoreProjects() {
+  //   //#region @backend
+  //   let allCoreProject: (Project & {
+  //     projectLinkedFiles: any; // TODO QUICKFIX,
+  //     filesStructure: any;
+  //   })[] = [];
+  //   Helpers.log(`INITING CORE PROJECTS START
+  //     Project.projects.length ${Project.projects.length}
 
-    `);
+  //   `);
 
-    // TODO
-    Helpers.run(`${config.frameworkName} env:install`).sync();
-    (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
-      let corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
-      if ((['v3', 'v1'] as ConfigModels.FrameworkVersion[]).includes(v)) {
-        corePorjectsTypes = ['isomorphic-lib'];
-      }
-      const projects = corePorjectsTypes.map(t => Project.by(t, v));
-      allCoreProject = [
-        ...projects,
-        ...allCoreProject,
-      ] as any;
-    });
+  //   // TODO
+  //   Helpers.run(`${config.frameworkName} env:install`).sync();
+  //   (config.coreProjectVersions as ConfigModels.FrameworkVersion[]).forEach(v => {
+  //     let corePorjectsTypes: ConfigModels.LibType[] = ['angular-lib', 'isomorphic-lib'];
+  //     if ((['v3', 'v1'] as ConfigModels.FrameworkVersion[]).includes(v)) {
+  //       corePorjectsTypes = ['isomorphic-lib'];
+  //     }
+  //     const projects = corePorjectsTypes.map(t => Project.by(t, v));
+  //     allCoreProject = [
+  //       ...projects,
+  //       ...allCoreProject,
+  //     ] as any;
+  //   });
 
-    for (let index = 0; index < allCoreProject.length; index++) {
-      const projectToInit = allCoreProject[index];
-      Helpers.log(`${projectToInit.genericName} ${projectToInit.location}`);
-      const linkedFiles = projectToInit.projectLinkedFiles();
-      for (let index2 = 0; index2 < linkedFiles.length; index2++) {
-        const l = linkedFiles[index2];
-        const source = path.join(l.sourceProject.location, l.relativePath);
-        const dest = path.join(projectToInit.location, l.relativePath);
-        if (!Helpers.exists(source)) {
-          Helpers.error(`[config] Core source do not exists: ${source}`, false, true);
-        }
-        Helpers.info(`link from: ${source} to ${dest}`);
-        // Helpers.remove(dest)
-        Helpers.createSymLink(source, dest, { continueWhenExistedFolderDoesntExists: true });
-      }
-      await projectToInit.filesStructure.struct();
-    }
-    Helpers.log('INITING CORE PROJECTS DONE');
-    //#endregion
-  }
+  //   for (let index = 0; index < allCoreProject.length; index++) {
+  //     const projectToInit = allCoreProject[index];
+  //     Helpers.log(`${projectToInit.genericName} ${projectToInit.location}`);
+  //     const linkedFiles = projectToInit.projectLinkedFiles();
+  //     for (let index2 = 0; index2 < linkedFiles.length; index2++) {
+  //       const l = linkedFiles[index2];
+  //       const source = path.join(l.sourceProject.location, l.relativePath);
+  //       const dest = path.join(projectToInit.location, l.relativePath);
+  //       if (!Helpers.exists(source)) {
+  //         Helpers.error(`[config] Core source do not exists: ${source}`, false, true);
+  //       }
+  //       Helpers.info(`link from: ${source} to ${dest}`);
+  //       // Helpers.remove(dest)
+  //       Helpers.createSymLink(source, dest, { continueWhenExistedFolderDoesntExists: true });
+  //     }
+  //     await projectToInit.filesStructure.struct();
+  //   }
+  //   Helpers.log('INITING CORE PROJECTS DONE');
+  //   //#endregion
+  // }
   //#endregion
 
   //#region api / check if build allowed
