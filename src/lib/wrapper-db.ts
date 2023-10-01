@@ -275,7 +275,7 @@ export class TnpDB {
       }
 
       const existed = await this.buildsCtrl.getExistedForOptions(currentProject, buildOptions, pid, ppid);
-      if (existed && currentProject.isGenerated === existed.project.isGenerated) {
+      if (existed) {
         if (global.tnpNonInteractive) {
           Helpers.warn('automatic kill of active build instance in static build mode');
           await killAndRemove(existed);

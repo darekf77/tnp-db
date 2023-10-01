@@ -190,27 +190,6 @@ export class BuildOptions implements Models.dev.StartForOptions {
       if (_.isString(argsObj.forClient)) {
         argsObj.forClient = [argsObj.forClient];
       }
-      if (!!projectCurrent && projectCurrent.isWorkspaceChildProject) {
-        argsObj.forClient = (argsObj.forClient as string[]).map(projectParentChildName => {
-          if (_.isObject(projectParentChildName)) {
-            projectParentChildName = (projectParentChildName as any).name;
-          }
-          // console.log('projectParentChildName', projectParentChildName)
-          const proj = projectCurrent.parent.children.find(c => {
-            return c.name === (projectParentChildName as string) || c.location === (projectParentChildName as string);
-          }) as Project;
-          if (!proj) {
-            Helpers.log(`
-            projectCurrent.parent.children: ${projectCurrent.parent.children.map(c => c.name)}
-            `);
-            Helpers.error(`${CLI.chalk.bold('--forClient argument')}`
-              + ` : Cannot find module ${CLI.chalk.bold(projectParentChildName)} `
-              + `in workspace ${(projectCurrent.parent as Project).genericName}`);
-          }
-          // Helpers.info(`(${projectCurrent.name}) Build only for client ${chalk.bold(projectParentChildName)}`)
-          return proj;
-        }) as any;
-      }
     }
     if (!_.isArray(argsObj.forClient)) {
       argsObj.forClient = [];

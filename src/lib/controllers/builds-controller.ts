@@ -181,10 +181,6 @@ export class BuildsController extends BaseController<DbCrud> {
     const possibleLocation = [];
     if (project.isStandaloneProject) {
       possibleLocation.push(project.location);
-    } else if (project.isWorkspaceChildProject) {
-      project.parent.children.forEach(c => {
-        possibleLocation.push(c.location);
-      });
     }
 
     // console.log('possibleLocation', possibleLocation);
