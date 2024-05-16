@@ -17,7 +17,6 @@
     npmFixes: [],
   },
 
-  linkedProjects: [],
   smartContainerBuildTarget: '',
   linkedRepos: [],
 
