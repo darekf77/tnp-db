@@ -1,0 +1,50 @@
+{
+  "resources": ["README.md"],
+
+  "overrided": {
+    "tsconfig": {
+      "compilerOptions": {
+        "allowJs": true,
+        "noEmit": true,
+      },
+    },
+
+    "ignoreDepsPattern": [],
+    "includeAsDev": [],
+    "includeOnly": ["firedev-crud-deamon"],
+    "dependencies": {},
+    "linkedFolders": [],
+    "npmFixes": [],
+  },
+
+  "smartContainerBuildTarget": "",
+  "linkedRepos": [],
+
+  "libReleaseOptions": {
+    "nodts": false,
+    "obscure": false,
+    "ugly": false,
+    "includeNodeModules": false,
+    "cliBuildNoDts": false,
+    "cliBuildObscure": false,
+    "cliBuildIncludeNodeModules": false,
+    "cliBuildUglify": false,
+  },
+
+  "smartContainerTarget": "",
+  "type": "isomorphic-lib",
+  "version": "v4",
+  "additionalNpmNames": ["firedev-db"],
+
+  "scripts": {
+    "dist:helpers": "rimraf node_modules/tnp-helpers && cpr `pwd`/../tnp-helpers/dist node_modules/tnp-helpers",
+    "dist:models": "rimraf node_modules/tnp-models && cpr `pwd`/../tnp-models/dist node_modules/tnp-models",
+  },
+
+  "description": "",
+  "license": "MIT",
+  "private": false,
+  "author": "",
+  "homepage": "https://github.com/darekf77/tnp-db#readme",
+  "workerPlugins": {},
+}
