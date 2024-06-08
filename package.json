@@ -48,7 +48,7 @@
     "homepage": "https://github.com/darekf77/tnp-db#readme",
     "workerPlugins": {}
   },
-  "version": "16.444.1",
+  "version": "16.444.2",
   "dependencies": {
     "firedev-crud-deamon": "16.444.1"
   },
